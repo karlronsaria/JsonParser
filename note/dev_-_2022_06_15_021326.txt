@@ -1,0 +1,135 @@
+S is an object
+
+An object is a list of unique key-value pairs
+
+A key-value pair is name (key) and a value
+
+A value is a string, number, object, array, boolean, or null
+
+
+
+<Json> ::= "{" <Object> "}"
+
+<Object> ::= <Pair> | <Object> "," <Pair>
+
+<Pair> ::= <String> ":" <Value>
+
+<Value> ::= "[ <List> "]" | "{" <Object> "}" | <Primitive>
+
+<List> ::= <Value> | <List> "," <Value>
+
+<Primitive> ::= <String> | <Integer> | <Float> | <Boolean> | <Nil>
+
+
+
+def NextToken
+
+
+def ParseJson
+    NextToken  { NextToken needs to ignore white space }
+
+    if token is '{'
+        ParseObject
+    else
+        return Error
+
+def ParseObject
+    ParsePair
+
+    while token is ','
+        ParsePair
+
+    if token is not '}'
+        return Error
+
+    return token
+
+def ParsePair
+    NextToken
+
+    if not(name <- LexString)  { ParseKey }
+        return Error
+
+    NextToken
+
+    if token is not ':'
+        return Error
+
+    ParseValue
+    return token
+
+def ParseValue
+    NextToken
+
+    if token is '['
+        ParseList
+    else if token is '{'
+        ParseObject
+    else
+        ParsePrimitive
+
+def ParseList
+    ParseValue
+
+    while token is ','
+        ParseValue
+
+    if token is not ']'
+        return Error
+
+    return token
+
+def ParsePrimitive
+    case token
+        WORD:
+            if lexer.Str() is "true"
+                ParseBoolean(true)
+                return
+
+            if lexer.Str() is "false"
+                ParseBoolean(false)
+                return
+
+            if lexer.Str() is "null"
+                ParseNil()
+                return
+
+            return Error
+        INTEGER:
+            ParseInteger(lexer.Integer())
+            return
+        FLOAT:
+            ParseFloat(lexer.Float())
+            return
+        STRING:
+            ParseString(lexer.Str())
+            return
+        default:
+            if token is '-'
+                NextToken()
+                ParseNumber()
+                return
+
+            return Error
+
+def ParseNumber
+    case token
+        INTEGER:
+            ParseInteger(lexer.Integer())
+            return
+        FLOAT:
+            ParseFloat(lexer.Float())
+            return
+        default:
+            return Error
+
+
+
+
+
+
+
+
+
+
+

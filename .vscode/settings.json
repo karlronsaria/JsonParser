@@ -1,0 +1,19 @@
+{
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "iostream": "cpp",
+        "*.tcc": "cpp",
+        "functional": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "numeric": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp",
+        "tuple": "cpp",
+        "stdexcept": "cpp",
+        "array": "cpp",
+        "memory_resource": "cpp",
+        "initializer_list": "cpp",
+        "limits": "cpp"
+    }
+}

@@ -1,160 +1,157 @@
-Start Json
+New Object
 (
-  New Object
+  New Pair
   (
-    New Pair
+    Key: [link]
+    Value:
     (
-      Key: [link]
-      Value:
+      New Object
       (
-        New Object
+        New Pair
         (
-          New Pair
+          Key: [url]
+          Value:
           (
-            Key: [url]
-            Value:
-            (
-              String: [https://json.org/example.html]
-            )
+            String: [https://json.org/example.html]
           )
-          New Pair
+        )
+        New Pair
+        (
+          Key: [retrieved]
+          Value:
           (
-            Key: [retrieved]
-            Value:
-            (
-              String: [2022_06_19]
-            )
+            String: [2022_06_19]
           )
         )
       )
     )
-    New Pair
+  )
+  New Pair
+  (
+    Key: [glossary]
+    Value:
     (
-      Key: [glossary]
-      Value:
+      New Object
       (
-        New Object
+        New Pair
         (
-          New Pair
+          Key: [title]
+          Value:
           (
-            Key: [title]
-            Value:
-            (
-              String: [example glossary]
-            )
+            String: [example glossary]
           )
-          New Pair
+        )
+        New Pair
+        (
+          Key: [GlossDiv]
+          Value:
           (
-            Key: [GlossDiv]
-            Value:
+            New Object
             (
-              New Object
+              New Pair
               (
-                New Pair
+                Key: [title]
+                Value:
                 (
-                  Key: [title]
-                  Value:
-                  (
-                    String: [S]
-                  )
+                  String: [S]
                 )
-                New Pair
+              )
+              New Pair
+              (
+                Key: [GlossList]
+                Value:
                 (
-                  Key: [GlossList]
-                  Value:
+                  New Object
                   (
-                    New Object
+                    New Pair
                     (
-                      New Pair
+                      Key: [GlossEntry]
+                      Value:
                       (
-                        Key: [GlossEntry]
-                        Value:
+                        New Object
                         (
-                          New Object
+                          New Pair
                           (
-                            New Pair
+                            Key: [ID]
+                            Value:
                             (
-                              Key: [ID]
-                              Value:
-                              (
-                                String: [SGML]
-                              )
+                              String: [SGML]
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [SortAs]
+                            Value:
                             (
-                              Key: [SortAs]
-                              Value:
-                              (
-                                String: [SGML]
-                              )
+                              String: [SGML]
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [GlossTerm]
+                            Value:
                             (
-                              Key: [GlossTerm]
-                              Value:
-                              (
-                                String: [Standard Generalized Markup Language]
-                              )
+                              String: [Standard Generalized Markup Language]
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [Acronym]
+                            Value:
                             (
-                              Key: [Acronym]
-                              Value:
-                              (
-                                String: [SGML]
-                              )
+                              String: [SGML]
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [Abbrev]
+                            Value:
                             (
-                              Key: [Abbrev]
-                              Value:
-                              (
-                                String: [ISO 8879:1986]
-                              )
+                              String: [ISO 8879:1986]
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [GlossDef]
+                            Value:
                             (
-                              Key: [GlossDef]
-                              Value:
+                              New Object
                               (
-                                New Object
+                                New Pair
                                 (
-                                  New Pair
+                                  Key: [para]
+                                  Value:
                                   (
-                                    Key: [para]
-                                    Value:
-                                    (
-                                      String: [A meta-markup language, used to create markup languages such as DocBook.]
-                                    )
+                                    String: [A meta-markup language, used to create markup languages such as DocBook.]
                                   )
-                                  New Pair
+                                )
+                                New Pair
+                                (
+                                  Key: [GlossSeeAlso]
+                                  Value:
                                   (
-                                    Key: [GlossSeeAlso]
-                                    Value:
+                                    New List
                                     (
-                                      New List
+                                      Value:
                                       (
-                                        Value:
-                                        (
-                                          String: [GML]
-                                        )
-                                        Value:
-                                        (
-                                          String: [XML]
-                                        )
+                                        String: [GML]
+                                      )
+                                      Value:
+                                      (
+                                        String: [XML]
                                       )
                                     )
                                   )
                                 )
                               )
                             )
-                            New Pair
+                          )
+                          New Pair
+                          (
+                            Key: [GlossSee]
+                            Value:
                             (
-                              Key: [GlossSee]
-                              Value:
-                              (
-                                String: [markup]
-                              )
+                              String: [markup]
                             )
                           )
                         )

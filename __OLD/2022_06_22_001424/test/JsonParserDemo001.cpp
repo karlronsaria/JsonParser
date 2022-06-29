@@ -64,7 +64,7 @@ bool MyJsonParserVisitor::ForNumber(Lexer & lexer) {
 }
 
 bool MyJsonParserVisitor::ForKeyWord(Lexer & lexer) {
-    const std::string & str = lexer.Str();
+    const std::string & str = lexer.String();
 
     if (!str.compare("true")) {
         PutIndent();
@@ -101,7 +101,7 @@ bool MyJsonParserVisitor::ForFloat(Lexer & lexer) {
 
 bool MyJsonParserVisitor::ForString(Lexer & lexer) {
     PutIndent();
-    _stream << "String: [" << lexer.Str() << "]\n";
+    _stream << "String: [" << lexer.String() << "]\n";
     return true;
 }
 
@@ -117,6 +117,6 @@ bool MyJsonParserVisitor::ForError(Lexer & lexer) {
 
 bool MyJsonParserVisitor::ForKey(Lexer & lexer) {
     PutIndent();
-    _stream << "Key: [" << lexer.Str() << "]\n";
+    _stream << "Key: [" << lexer.String() << "]\n";
     return true;
 }

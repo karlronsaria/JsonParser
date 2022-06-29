@@ -195,21 +195,17 @@ void Tests::Init() {
                     expected
                 );
             }
-/*
-// TODO: (2022_06_22) JsonParser quarantine
-//
         },
         {
             "JsonParser_Should_IdentifyHierarchyInJsonString",
             [](std::string & actual, std::string & expected) -> bool {
                 return TestJsonParserDemo001(
-                    "res/actual001.json",
+                    "res/input001.json",
                     "res/expected001.txt",
                     actual,
                     expected
                 );
             }
-*/
         }
     };
 }

@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "Lexer.h"
 
 Lexer::Lexer(std::shared_ptr<IEnumerator> && stream):
     _stream(std::move(stream))
@@ -32,11 +32,11 @@ int Lexer::LexWhiteSpace() {
     //         v
     //   for   (int i = 0;
     // 
-    _str = "";
-    _str += _current_char;
+    _string = "";
+    _string += _current_char;
 
     while (NextChar() && isspace(_current_char))
-        _str += _current_char;
+        _string += _current_char;
 
     return _stream->HasNext()
         ? Token::SPACE
@@ -52,11 +52,11 @@ int Lexer::LexWord() {
     //         v
     //   _what3
     // 
-    _str = "";
-    _str += _current_char;
+    _string = "";
+    _string += _current_char;
 
     while (NextChar() && (isalpha(_current_char) || _current_char == '_' || isdigit(_current_char)))
-        _str += _current_char;
+        _string += _current_char;
 
     return _stream->HasNext()
         ? Token::WORD
@@ -114,11 +114,11 @@ int Lexer::LexString(char delimiter) {
     //                                   v
     //   "It's all I have to bring today"
     // 
-    _str = "";
-    _str += _current_char;
+    _string = "";
+    _string += _current_char;
 
     while (NextChar() && _current_char != delimiter)
-        _str += _current_char;
+        _string += _current_char;
 
     NextChar();
 
@@ -139,8 +139,8 @@ int Lexer::LexString(
     //                                   v
     //   "It's all I have to bring today"
     // 
-    _str = "";
-    _str += _current_char;
+    _string = "";
+    _string += _current_char;
     int token = (*forEachCharacter)(*this);
 
     while (_stream->HasNext() && _current_char != delimiter) {
@@ -149,7 +149,7 @@ int Lexer::LexString(
             case Token::ERROR:
                 return Token::ERROR;
             default:
-                _str += (char)token;
+                _string += (char)token;
                 break;
         }
 
@@ -293,8 +293,8 @@ char Lexer::CurrentChar() const {
     return _current_char;
 }
 
-const std::string & Lexer::Str() const {
-    return _str;
+const std::string & Lexer::String() const {
+    return _string;
 }
 
 int Lexer::Integer() const {

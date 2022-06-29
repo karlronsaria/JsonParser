@@ -21,7 +21,7 @@ enum Token {
 
 class Lexer {
     private:
-        std::string _str;
+        std::string _string;
         int _integer;
         float _float;
         char _character;
@@ -55,7 +55,7 @@ class Lexer {
         int Index() const;
         bool HasNext() const;
         char CurrentChar() const;
-        const std::string & Str() const;
+        const std::string & String() const;
         int Integer() const;
         float Float() const;
         char Character() const;

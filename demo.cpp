@@ -8,6 +8,8 @@ int main(int argc, char ** args) {
         return 1;
     }
 
+    // std::cout << "Hello, world!\n";
+
     Tests::WorkingDirectory = std::string(args[1]);
     Tests::Init();
     Tests::Run(std::cout);

@@ -2,48 +2,34 @@
 #ifndef _JSONPARSER_H
 #define _JSONPARSER_H
 
-#include "lexer.h"
-
-class JsonLexer {
-    public:
-        static int Escape(Lexer &);
-        static int NextToken(Lexer &);
-};
-
-class JsonParser;
-
-class IJsonParserVisitor {
-    public:
-        virtual ~IJsonParserVisitor() = default;
-        virtual void Push() = 0;
-        virtual void Pop() = 0;
-        virtual bool ForJson(Lexer &) = 0;
-        virtual bool ForObject(Lexer &) = 0;
-        virtual bool ForList(Lexer &) = 0;
-        virtual bool ForPair(Lexer &) = 0;
-        virtual bool ForValue(Lexer &) = 0;
-        virtual bool ForPrimitive(Lexer &) = 0;
-        virtual bool ForNumber(Lexer &) = 0;
-        virtual bool ForKeyWord(Lexer &) = 0;
-        virtual bool ForInteger(Lexer &) = 0;
-        virtual bool ForFloat(Lexer &) = 0;
-        virtual bool ForString(Lexer &) = 0;
-        virtual bool ForError(Lexer &) = 0;
-        virtual bool ForKey(Lexer &) = 0;
-};
+#include "Lexer.h"
+#include "JsonTree.h"
 
 class JsonParser {
     public:
-        static int ParseJson(Lexer &, IJsonParserVisitor *);
-        static int ParseObject(Lexer &, IJsonParserVisitor *);
-        static int ParseList(Lexer &, IJsonParserVisitor *);
-        static int ParsePair(Lexer &, IJsonParserVisitor *);
-        static int ParseValue(Lexer &, IJsonParserVisitor *);
-        static int ParsePrimitive(int, Lexer &, IJsonParserVisitor *);
-        static int ParseNumber(int, Lexer &, IJsonParserVisitor *);
-        static int ParseKey(Lexer &, IJsonParserVisitor *);
+        static int Escape(Lexer &);
+        static int NextToken(Lexer &);
+    private:
+        Lexer * _lexer;
+        int _token;
+    protected:
+        int NextToken();
+        jsonptr_t ParseObject();
+        jsonptr_t ParseList();
+        jsonptr_t ParsePair();
+        jsonptr_t ParseValue();
+        jsonptr_t ParsePrimitive();
+        jsonptr_t ParseNumber(bool);
+        jsonptr_t ParseKeyword();
+        jsonptr_t Error();
+    public:
+        JsonParser(
+            Lexer * lexer
+        ):  _lexer(lexer),
+            _token(0) {}
 
-        static int Error(Lexer &, IJsonParserVisitor *);
+        jsonptr_t GetTree();
+        static jsonptr_t Tree(Lexer * lexer);
 };
 
 #endif

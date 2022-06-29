@@ -35,7 +35,7 @@ int LexerTestVisitor::ForPunctuation(char token) {
                 case Token::END:
                     break;
                 case Token::STRING:
-                    _test_out << "String: [" << _lexer->Str() << "]";
+                    _test_out << "String: [" << _lexer->String() << "]";
                     break;
                 default:
                     // TODO: Error
@@ -129,7 +129,7 @@ bool Tests::TestLexerDemo002(
     int token;
 
     while (hasNext) {
-        token = LexerDemo002::NextTokenC(myLexer);
+        token = JsonParser::NextToken(myLexer);
 
         switch(token) {
             case Token::ERROR:
@@ -140,7 +140,7 @@ bool Tests::TestLexerDemo002(
                 continue;
             case Token::WORD:
                 oss << "Word: ["
-                    << myLexer.Str()
+                    << myLexer.String()
                     << ']';
                 break;
             case Token::CHARACTER:
@@ -160,7 +160,7 @@ bool Tests::TestLexerDemo002(
                 break;
             case Token::STRING:
                 oss << "String: ["
-                    << myLexer.Str()
+                    << myLexer.String()
                     << ']';
                 break;
             default:
@@ -185,9 +185,6 @@ bool Tests::TestLexerDemo002(
     return !expected.compare(actual);
 }
 
-/*
-// TODO: (2022_06_22) JsonParser quarantine
-//
 bool Tests::TestJsonParserDemo001(
     const std::string & testFilePath,
     const std::string & expectedFilePath,
@@ -214,9 +211,11 @@ bool Tests::TestJsonParserDemo001(
 
     std::stringstream actualStream;
 
-    Lexer myLexer(std::make_shared<StreamEnumerator>(inputStream));
-    auto visitor = std::make_shared<MyJsonParserVisitor>(actualStream);
-    JsonParser::ParseJson(myLexer, visitor.get());
+    auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
+    auto lexer = std::make_shared<Lexer>(enumerator);
+    auto visitor = std::make_shared<MyJsonTreeVisitor>(actualStream);
+    auto tree = JsonParser::Tree(lexer.get());
+    tree->Accept(visitor.get());
 
     inputStream.close();
 
@@ -252,7 +251,7 @@ bool Tests::TestJsonParserDemo001(
     }
 
     expectedStream.close();
-    expected = ToString(MyJsonParserVisitor::STARTING_LEVEL);
+    expected = ToString(MyJsonTreeVisitor::STARTING_LEVEL);
     actual = ToString(visitor->Level());
 
     if (expected.compare(actual))
@@ -260,7 +259,6 @@ bool Tests::TestJsonParserDemo001(
 
     return true;
 }
-*/
 
 bool Tests::TestLexer(
     const std::string & testString,

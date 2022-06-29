@@ -20,8 +20,8 @@ class MyJsonParserVisitor: public IJsonParserVisitor {
         MyJsonParserVisitor(std::ostream & stream):
             _stream(stream),
             _level(STARTING_LEVEL) {}
-        virtual void Push() override;
-        virtual void Pop() override;
+        virtual void Push();
+        virtual void Pop();
         virtual bool ForJson(Lexer &) override;
         virtual bool ForObject(Lexer &) override;
         virtual bool ForList(Lexer &) override;

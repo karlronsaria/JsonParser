@@ -4,11 +4,13 @@
 
 #include "../src/StringEnumerator.h"
 #include "../src/StreamEnumerator.h"
+#include "../src/JsonParser.h"
 #include "../src/other.h"
 #include "LexerDemo001.h"
-#include "LexerDemo002.h"
-// // TODO: (2022_06_22) JsonParser quarantine
-// #include "JsonParserDemo001.h"
+
+// (2022_06_29) Implements the tree visitor only
+#include "JsonTreeDemo001.h"
+
 #include <fstream>
 #include <istream>
 #include <sstream>
@@ -46,16 +48,12 @@ class Tests {
             std::string & expected
         );
 
-        /*
-        // TODO: (2022_06_22) JsonParser quarantine
-        //
         static bool TestJsonParserDemo001(
             const std::string & testFilePath,
             const std::string & expectedFilePath,
             std::string & actual,
             std::string & expected
         );
-        */
 };
 
 class LexerTestVisitor: public ILexerVisitor {

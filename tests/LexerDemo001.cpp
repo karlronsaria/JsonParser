@@ -10,13 +10,13 @@ bool ForEachToken(
     while (hasNext) {
         switch ((Token)token) {
             case Token::SPACE:
-                visitor->ForWhiteSpace(lexer.Str());
+                visitor->ForWhiteSpace(lexer.String());
                 break;
             case Token::END:
                 hasNext = false;
                 break;
             case Token::WORD:
-                visitor->ForWord(lexer.Str());
+                visitor->ForWord(lexer.String());
                 break;
             case Token::INTEGER:
                 visitor->ForInteger(lexer.Integer());

@@ -1,6 +1,6 @@
 #include "JsonParser.h"
 
-int JsonLexer::Escape(Lexer & lexer) {
+int JsonParser::Escape(Lexer & lexer) {
     if (!lexer.NextChar())
         return Token::ERROR;
 
@@ -28,7 +28,7 @@ int JsonLexer::Escape(Lexer & lexer) {
     }
 }
 
-int JsonLexer::NextToken(Lexer & lexer) {
+int JsonParser::NextToken(Lexer & lexer) {
     if (!lexer.IgnoreWhiteSpace())
         return Token::END;
 
@@ -55,152 +55,155 @@ int JsonLexer::NextToken(Lexer & lexer) {
     return temp;
 }
 
-int JsonParser::ParseJson(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForJson(lexer);
-    visitor->Push();
-
-    int token = JsonLexer::NextToken(lexer);
-
-    if (token != '{')
-        return Error(lexer, visitor);
-
-    token = ParseObject(lexer, visitor);
-    visitor->Pop();
-    return token;
+int JsonParser::NextToken() {
+    return _token = JsonParser::NextToken(*_lexer);
 }
 
-int JsonParser::ParseObject(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForObject(lexer);
-    visitor->Push();
+jsonptr_t JsonParser::GetTree() {
+    NextToken();
 
-    if (ParsePair(lexer, visitor) == Token::ERROR)
-        return Error(lexer, visitor);
+    if (_token != '{')
+        return Error();
 
-    int token = JsonLexer::NextToken(lexer);
+    return ParseObject();
+}
 
-    while (token == ',') {
-        if (ParsePair(lexer, visitor) == Token::ERROR)
-            return Error(lexer, visitor);
+jsonptr_t JsonParser::ParseObject() {
+    // TODO: Consider adding a kill condition at the
+    //   start of each Parse function.
+    auto pairs = std::vector<jsonptr_t>();
 
-        token = JsonLexer::NextToken(lexer);
+    do {
+        auto pair = ParsePair();
+
+        if (_token == Token::ERROR)
+            return Error();
+
+        pairs.push_back(std::move(pair));
+        NextToken();
     }
+    while (_token == ',');
 
-    if (token != '}')
-        return Error(lexer, visitor);
+    if (_token != '}')
+        return Error();
 
-    visitor->Pop();
-    return token;
+    return std::move(std::make_unique<JsonObject>(std::move(pairs)));
 }
 
-int JsonParser::ParseList(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForList(lexer);
-    visitor->Push();
+jsonptr_t JsonParser::ParseList() {
+    auto values = std::vector<jsonptr_t>();
 
-    if (ParseValue(lexer, visitor) == Token::ERROR)
-        return Error(lexer, visitor);
+    do {
+        auto value = ParseValue();
 
-    int token = JsonLexer::NextToken(lexer);
+        if (_token == Token::ERROR)
+            return Error();
 
-    while (token == ',') {
-        if (ParseValue(lexer, visitor) == Token::ERROR)
-            return Error(lexer, visitor);
-
-        token = JsonLexer::NextToken(lexer);
+        values.push_back(std::move(value));
+        NextToken();
     }
+    while (_token == ',');
 
-    if (token != ']')
-        return Error(lexer, visitor);
+    if (_token != ']')
+        return Error();
 
-    visitor->Pop();
-    return token;
+    return std::move(std::make_unique<JsonList>(std::move(values)));
 }
 
-int JsonParser::ParsePair(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForPair(lexer);
-    visitor->Push();
+jsonptr_t JsonParser::ParsePair() {
+    NextToken();
 
-    int token = JsonLexer::NextToken(lexer);
+    if ((Token)_token != Token::STRING)
+        return Error();
 
-    if (ParseKey(lexer, visitor) == Token::ERROR)
-        return Error(lexer, visitor);
+    std::string key = _lexer->String();
+    NextToken();
 
-    token = JsonLexer::NextToken(lexer);
+    if ((char)_token != ':')
+        return Error();
 
-    if ((char)token != ':')
-        return Error(lexer, visitor);
-
-    token = ParseValue(lexer, visitor);
-    visitor->Pop();
-    return token;
+    return std::move(
+        std::make_unique<JsonPair>(
+            key,
+            std::move(ParseValue())
+        )
+    );
 }
 
-int JsonParser::ParseValue(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForValue(lexer);
-    visitor->Push();
+jsonptr_t JsonParser::ParseValue() {
+    NextToken();
 
-    int token = JsonLexer::NextToken(lexer);
+    if (_token == '[')
+        return ParseList();
 
-    if (token == '[')
-        token = ParseList(lexer, visitor);
-    else if (token == '{')
-        token = ParseObject(lexer, visitor);
-    else
-        token = ParsePrimitive(token, lexer, visitor);
+    if (_token == '{')
+        return ParseObject();
 
-    visitor->Pop();
-    return token;
+    return ParsePrimitive();
 }
 
-int JsonParser::ParsePrimitive(int token, Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForPrimitive(lexer);
-
-    switch ((Token)token) {
+jsonptr_t JsonParser::ParsePrimitive() {
+    switch ((Token)_token) {
         case Token::WORD:
-            visitor->ForKeyWord(lexer);
-            break;
-        case Token::INTEGER:
-            visitor->ForInteger(lexer);
-            break;
-        case Token::FLOAT:
-            visitor->ForFloat(lexer);
-            break;
+            return ParseKeyword();
         case Token::STRING:
-            visitor->ForString(lexer);
-            break;
+            return std::move(std::make_unique<JsonString>(_lexer->String()));
         default:
-            if ((char)token == '-') {
-                JsonLexer::NextToken(lexer);
-                return ParseNumber(token, lexer, visitor);
+            if ((char)_token == '-') {
+                NextToken();
+                return ParseNumber(true);
             }
-
-            return Error(lexer, visitor);
     }
 
-    return token;
+    return ParseNumber(false);
 }
 
-int JsonParser::ParseNumber(int token, Lexer & lexer, IJsonParserVisitor * visitor) {
-    switch ((Token)token) {
+jsonptr_t JsonParser::ParseNumber(bool negative) {
+    int factor = negative ? -1 : 1;
+
+    switch ((Token)_token) {
         case Token::INTEGER:
-            visitor->ForInteger(lexer);
-            break;
+            return std::move(std::make_unique<JsonNumeric>(
+                Homonumeric::Integer(factor * _lexer->Integer())
+            ));
         case Token::FLOAT:
-            visitor->ForFloat(lexer);
-            break;
+            return std::move(std::make_unique<JsonNumeric>(
+                Homonumeric::Float(factor * _lexer->Float())
+            ));
         default:
-            return Error(lexer, visitor);
+            break;
     }
 
-    return token;
+    return Error();
 }
 
-int JsonParser::Error(Lexer & lexer, IJsonParserVisitor * visitor) {
-    visitor->ForError(lexer);
-    return Token::ERROR;
+jsonptr_t JsonParser::ParseKeyword() {
+    std::string keyword = _lexer->String();
+
+    if (keyword == "null")
+        return nullptr;
+
+    int value = 0;
+
+    if (keyword == "false")
+        value = 1;
+
+    if (keyword == "true")
+        value = 2;
+
+    if (!value)
+        return Error();
+
+    return std::move(std::make_unique<JsonNumeric>(
+        Homonumeric::Boolean((bool)(value - 1))
+    ));
 }
 
-int JsonParser::ParseKey(Lexer & lexer, IJsonParserVisitor * visitor) {
-    return visitor->ForKey(lexer)
-        ? Token::STRING
-        : Token::END;
+jsonptr_t JsonParser::Error() {
+    // TODO: Log error
+    return nullptr;
+}
+
+jsonptr_t JsonParser::Tree(Lexer * lexer) {
+    return JsonParser(lexer).GetTree();
 }

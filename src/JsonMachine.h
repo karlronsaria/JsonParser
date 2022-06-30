@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <string>
 #include <vector>
 
 typedef int key_t;
@@ -35,30 +36,45 @@ class IJsonPointerMachineVisitor {
 };
 
 class JsonPointerMachine {
-    private:
-        std::unordered_map<key_t, std::string>
+    // private:
+    public:
+        std::vector<std::string>
         _strings;
 
-        std::unordered_map<key_t, int>
+        std::vector<int>
         _integers;
 
-        std::unordered_map<key_t, float>
+        std::vector<float>
         _floats;
 
         // TODO: find a more efficient solution
-        std::unordered_map<key_t, bool>
+        std::vector<bool>
         _booleans;
 
-        // TODO: determine if this is really necessary
-        std::vector<key_t>
-        _undeclared;
+        // // TODO: determine if this is really necessary
+        // std::vector<key_t>
+        // _undeclared;
 
-        std::unordered_map<key_t, jlist_t>
+        std::vector<jlist_t>
         _lists;
 
-        std::unordered_map<key_t, jobject_t>
+        std::vector<jobject_t>
         _objects;
     public:
+        JsonPointer NewObject();
+        JsonPointer NewList();
+        JsonPointer NewString(const std::string &);
+        JsonPointer NewInteger(int);
+        JsonPointer NewFloat(float);
+        JsonPointer NewBoolean(bool);
+
+        jobject_t & Object(int);
+        jlist_t & List(int);
+        std::string & String(int);
+        int & Integer(int);
+        float & Float(int);
+        bool & Boolean(int);
+
         bool Accept(
                 IJsonPointerMachineVisitor * visitor,
                 JsonPointer pointer
@@ -82,27 +98,3 @@ class JsonPointerMachine {
             }
         }
 };
-
-class JsonStVisitor {
-    // TODO
-};
-
-class JsonSt {
-    public:
-        // TODO
-        virtual void Evaluate(JsonStVisitor *) = 0;
-}
-
-class String_JsonSt: public JsonSt {
-    private:
-        std::string _str;
-    public:
-        const std::string & str();
-        String_JsonST(const std::string &);
-        virtual ~String_JsonST() {}
-        virtual void Evaluate(JsonStVisitor *) override;
-}
-
-class Object_JsonSt: public JsonSt {
-    public:
-}

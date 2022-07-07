@@ -2,6 +2,7 @@
 #ifndef _JSONTREEDEMO001_H
 #define _JSONTREEDEMO001_H
 
+/*
 #include "../src/JsonTree.h"
 #include <iostream>
 #include <iomanip>
@@ -39,5 +40,6 @@ class MyJsonTreeVisitor: public IJsonTreeVisitor {
         virtual void ForString(const std::string &) override;
         virtual void ForNumeric(Homonumeric) override;
 };
+*/
 
 #endif

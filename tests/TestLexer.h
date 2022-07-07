@@ -8,11 +8,12 @@
 #include "../src/other.h"
 #include "LexerDemo001.h"
 
-// (2022_06_29) Implements the tree visitor only
-#include "JsonTreeDemo001.h"
+// // (2022_06_29) Implements the tree visitor only
+// #include "JsonTreeDemo001.h"
 
-#include <fstream>
-#include <istream>
+#include "JsonTreeDemo002.h"
+
+#include "FileReader.h"
 #include <sstream>
 #include <memory>
 #include <vector>
@@ -41,6 +42,12 @@ class Tests {
             bool ignoreWhiteSpace
         );
 
+        static bool StartJsonTreePostorderTest(
+            const std::string & testFilePath,
+            std::string & message,
+            std::shared_ptr<Json::Context<>> & machine
+        );
+
         static bool TestLexerDemo002(
             const std::string & testString,
             const std::vector<std::string> & expectedTokens,
@@ -48,7 +55,16 @@ class Tests {
             std::string & expected
         );
 
+        /*
         static bool TestJsonParserDemo001(
+            const std::string & testFilePath,
+            const std::string & expectedFilePath,
+            std::string & actual,
+            std::string & expected
+        );
+        */
+
+        static bool TestJsonParserDemo002(
             const std::string & testFilePath,
             const std::string & expectedFilePath,
             std::string & actual,

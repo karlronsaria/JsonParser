@@ -129,7 +129,7 @@ bool Tests::TestLexerDemo002(
     int token;
 
     while (hasNext) {
-        token = JsonParser::NextToken(myLexer);
+        token = Json::Parser::NextToken(myLexer);
 
         switch(token) {
             case Token::ERROR:
@@ -185,6 +185,7 @@ bool Tests::TestLexerDemo002(
     return !expected.compare(actual);
 }
 
+/*
 bool Tests::TestJsonParserDemo001(
     const std::string & testFilePath,
     const std::string & expectedFilePath,
@@ -194,10 +195,14 @@ bool Tests::TestJsonParserDemo001(
     std::ifstream inputStream;
 
     std::string testFile
-        = Tests::WorkingDirectory + std::string("/") + testFilePath;
+        = Tests::WorkingDirectory
+            + std::string("/")
+            + testFilePath;
+
     inputStream.open(testFile.c_str());
 
-    if (!inputStream.is_open()) {
+    FileReader inputReader;
+    if (!FileReader::New(testFile, inputReader)) {
         std::ostringstream oss;
 
         oss << "Could not open file at "
@@ -211,10 +216,10 @@ bool Tests::TestJsonParserDemo001(
 
     std::stringstream actualStream;
 
-    auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
+    auto enumerator = std::make_shared<StreamEnumerator>(inputReader.Stream());
     auto lexer = std::make_shared<Lexer>(enumerator);
-    auto visitor = std::make_shared<MyJsonTreeVisitor>(actualStream);
-    auto tree = JsonParser::Tree(lexer.get());
+    auto visitor = std::make_shared<Json::MyTreeVisitor>(actualStream);
+    auto tree = Json::Parser::Tree(lexer.get());
     tree->Accept(visitor.get());
 
     inputStream.close();
@@ -222,10 +227,12 @@ bool Tests::TestJsonParserDemo001(
     std::ifstream expectedStream;
 
     std::string expectedFile
-        = Tests::WorkingDirectory + std::string("/") + expectedFilePath;
-    expectedStream.open(expectedFile.c_str());
+        = Tests::WorkingDirectory
+            + std::string("/")
+            + expectedFilePath;
 
-    if (!expectedStream.is_open()) {
+    FileReader expectedReader;
+    if (!FileReader::New(expectedFile, expectedReader)) {
         std::ostringstream oss;
 
         oss << "Could not open file at "
@@ -237,21 +244,16 @@ bool Tests::TestJsonParserDemo001(
         return false;
     }
 
-    getline(expectedStream, expected);
-    getline(actualStream, actual);
-
-    while (expectedStream && actualStream) {
-        if (expected.compare(actual)) {
-            expectedStream.close();
-            return false;
-        }
-
-        getline(expectedStream, expected);
-        getline(actualStream, actual);
+    if (GetNextDifferentLine(
+        expectedReader.Stream(),
+        actualStream,
+        actual,
+        expected) < 0
+    ) {
+        return false;
     }
 
-    expectedStream.close();
-    expected = ToString(MyJsonTreeVisitor::STARTING_LEVEL);
+    expected = ToString(Json::MyTreeVisitor::STARTING_LEVEL);
     actual = ToString(visitor->Level());
 
     if (expected.compare(actual))
@@ -259,6 +261,7 @@ bool Tests::TestJsonParserDemo001(
 
     return true;
 }
+*/
 
 bool Tests::TestLexer(
     const std::string & testString,
@@ -289,4 +292,83 @@ bool Tests::TestLexer(
     }
 
     return !expected.compare(actual);
+}
+
+bool Tests::StartJsonTreePostorderTest(
+    const std::string & testFilePath,
+    std::string & message,
+    std::shared_ptr<Json::Context<>> & machine
+) {
+    std::string testFile
+        = Tests::WorkingDirectory
+            + std::string("/")
+            + testFilePath;
+
+    FileReader inputReader;
+
+    if (!FileReader::New(testFile, inputReader)) {
+        message = "Could not open file at "
+            + testFile
+            + '\n';
+
+        return false;
+    }
+
+    auto enumerator = std::make_shared<StreamEnumerator>(inputReader.Stream());
+    auto lexer = std::make_shared<Lexer>(enumerator);
+    machine = std::make_shared<Json::Context<>>();
+    auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine.get());
+    auto tree = Json::Parser::Tree(lexer.get());
+    tree->Accept(visitor.get());
+    return true;
+}
+
+bool Tests::TestJsonParserDemo002(
+    const std::string & testFilePath,
+    const std::string & expectedFilePath,
+    std::string & actual,
+    std::string & expected
+) {
+    std::shared_ptr<Json::Context<>> machine;
+
+    if (!StartJsonTreePostorderTest(
+        testFilePath,
+        actual,
+        machine
+    )) {
+        expected = "";
+        return false;
+    }
+
+    std::stringstream actualStream;
+    std::ifstream expectedStream;
+
+    std::string expectedFile
+        = Tests::WorkingDirectory
+            + std::string("/")
+            + expectedFilePath;
+
+    FileReader expectedReader;
+
+    if (!FileReader::New(expectedFile, expectedReader)) {
+        std::ostringstream oss;
+
+        oss << "Could not open file at "
+            << expectedFile
+            << '\n';
+
+        actual = oss.str();
+        expected = "";
+        return false;
+    }
+
+    actualStream
+        << machine->ToString();
+
+    return 0 > GetNextDifferentLine(
+        expectedReader.Stream(),
+        actualStream,
+        actual,
+        expected
+    );
 }

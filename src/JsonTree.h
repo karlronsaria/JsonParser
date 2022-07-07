@@ -7,85 +7,83 @@
 #include <string>
 #include <vector>
 
-class JsonTree;
+#include "JsonContext.h"
 
-class IJsonTreeVisitor {
-    public:
-        virtual ~IJsonTreeVisitor() = default;
-        virtual void ForString(const std::string & payload) = 0;
-        virtual void ForNumeric(Homonumeric payload) = 0;
+namespace Json {
+    class Tree;
 
-        virtual void StartObject() = 0;
-        virtual void EndObject() = 0;
+    // Postorder-traversal visitor
+    class ITreeVisitor {
+        public:
+            virtual ~ITreeVisitor() = default;
+            virtual Pointer ForString(const std::string &) = 0;
+            virtual Pointer ForNumeric(Homonumeric) = 0;
+            virtual Pointer ForObject(
+                const std::vector<std::string> &,
+                std::vector<Pointer> &&
+            ) = 0;
+            virtual Pointer ForList(std::vector<Pointer> &&) = 0;
+    };
 
-        virtual void StartList() = 0;
-        virtual void EndList() = 0;
+    class Tree {
+        public:
+            virtual ~Tree() = default;
+            virtual Pointer Accept(ITreeVisitor *) = 0;
+    };
 
-        virtual void StartPair(const std::string & key) = 0;
-        virtual void EndPair() = 0;
+    typedef std::unique_ptr<Tree> tree_t;
 
-        virtual void StartValue() = 0;
-        virtual void EndValue() = 0;
-};
+    class Object: public Tree {
+        private:
+            std::vector<std::string> _keys;
+            std::vector<tree_t> _values;
+        public:
+            virtual ~Object() = default;
 
-class JsonTree {
-    public:
-        virtual ~JsonTree() = default;
-        virtual void Accept(IJsonTreeVisitor *) = 0;
-};
+            Object(
+                std::vector<std::string> keys,
+                std::vector<tree_t> values
+            ):  _keys(std::move(keys)),
+                _values(std::move(values)) {}
 
-typedef std::unique_ptr<JsonTree> jsonptr_t;
+            virtual Pointer Accept(ITreeVisitor *) override;
+    };
 
-class JsonPair: public JsonTree {
-    private:
-        std::string _key;
-        jsonptr_t _value;
-    public:
-        virtual ~JsonPair() = default;
-        JsonPair(const std::string & key, jsonptr_t value):
-            _key(key),
-            _value(std::move(value)) {}
-        virtual void Accept(IJsonTreeVisitor *) override;
-};
+    class List: public Tree {
+        private:
+            std::vector<tree_t> _values;
+        public:
+            virtual ~List() = default;
 
-class JsonObject: public JsonTree {
-    private:
-        std::vector<jsonptr_t> _pairs;
-    public:
-        virtual ~JsonObject() = default;
-        JsonObject(std::vector<jsonptr_t> pairs):
-            _pairs(std::move(pairs)) {}
-        virtual void Accept(IJsonTreeVisitor *) override;
-};
+            List(std::vector<tree_t> values):
+                _values(std::move(values)) {}
 
-class JsonList: public JsonTree {
-    private:
-        std::vector<jsonptr_t> _values;
-    public:
-        virtual ~JsonList() = default;
-        JsonList(std::vector<jsonptr_t> values):
-            _values(std::move(values)) {}
-        virtual void Accept(IJsonTreeVisitor *) override;
-};
+            virtual Pointer Accept(ITreeVisitor *) override;
+    };
 
-class JsonString: public JsonTree {
-    private:
-        std::string _payload;
-    public:
-        virtual ~JsonString() = default;
-        JsonString(const std::string & payload):
-            _payload(payload) {}
-        virtual void Accept(IJsonTreeVisitor *) override;
-};
+    class String: public Tree {
+        private:
+            std::string _payload;
+        public:
+            virtual ~String() = default;
 
-class JsonNumeric: public JsonTree {
-    private:
-        Homonumeric _payload;
-    public:
-        virtual ~JsonNumeric() = default;
-        JsonNumeric(Homonumeric payload):
-            _payload(payload) {}
-        virtual void Accept(IJsonTreeVisitor *) override;
+            String(const std::string & payload):
+                _payload(payload) {}
+
+            virtual Pointer Accept(ITreeVisitor *) override;
+    };
+
+    class Numeric: public Tree {
+        private:
+            Homonumeric _payload;
+        public:
+            virtual ~Numeric() = default;
+
+            Numeric(Homonumeric payload):
+                _payload(payload) {}
+
+            virtual Pointer Accept(ITreeVisitor *) override;
+    };
 };
 
 #endif

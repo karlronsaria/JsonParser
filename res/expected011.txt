@@ -1,0 +1,121 @@
+Objects:
+  Pair 0:
+    0:
+      Key: [url]
+      Value:
+        Type: String
+        Index: 0
+    1:
+      Key: [retrieved]
+      Value:
+        Type: String
+        Index: 1
+  Pair 1:
+    0:
+      Key: [para]
+      Value:
+        Type: String
+        Index: 9
+    1:
+      Key: [GlossSeeAlso]
+      Value:
+        Type: List
+        Index: 0
+  Pair 2:
+    0:
+      Key: [ID]
+      Value:
+        Type: String
+        Index: 4
+    1:
+      Key: [SortAs]
+      Value:
+        Type: String
+        Index: 5
+    2:
+      Key: [GlossTerm]
+      Value:
+        Type: String
+        Index: 6
+    3:
+      Key: [Acronym]
+      Value:
+        Type: String
+        Index: 7
+    4:
+      Key: [Abbrev]
+      Value:
+        Type: String
+        Index: 8
+    5:
+      Key: [GlossDef]
+      Value:
+        Type: Object
+        Index: 1
+    6:
+      Key: [GlossSee]
+      Value:
+        Type: String
+        Index: 12
+  Pair 3:
+    0:
+      Key: [GlossEntry]
+      Value:
+        Type: Object
+        Index: 2
+  Pair 4:
+    0:
+      Key: [title]
+      Value:
+        Type: String
+        Index: 3
+    1:
+      Key: [GlossList]
+      Value:
+        Type: Object
+        Index: 3
+  Pair 5:
+    0:
+      Key: [title]
+      Value:
+        Type: String
+        Index: 2
+    1:
+      Key: [GlossDiv]
+      Value:
+        Type: Object
+        Index: 4
+  Pair 6:
+    0:
+      Key: [link]
+      Value:
+        Type: Object
+        Index: 0
+    1:
+      Key: [glossary]
+      Value:
+        Type: Object
+        Index: 5
+Lists:
+  0:
+    Type: String
+    Index: 10
+    Type: String
+    Index: 11
+Strings:
+  0: [https://json.org/example.html]
+  1: [2022_06_19]
+  2: [example glossary]
+  3: [S]
+  4: [SGML]
+  5: [SGML]
+  6: [Standard Generalized Markup Language]
+  7: [SGML]
+  8: [ISO 8879:1986]
+  9: [A meta-markup language, used to create markup languages such as DocBook.]
+  10: [GML]
+  11: [XML]
+  12: [markup]
+Integers:
+Floats:
+Booleans:

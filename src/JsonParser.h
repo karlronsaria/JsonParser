@@ -5,31 +5,33 @@
 #include "Lexer.h"
 #include "JsonTree.h"
 
-class JsonParser {
-    public:
-        static int Escape(Lexer &);
-        static int NextToken(Lexer &);
-    private:
-        Lexer * _lexer;
-        int _token;
-    protected:
-        int NextToken();
-        jsonptr_t ParseObject();
-        jsonptr_t ParseList();
-        jsonptr_t ParsePair();
-        jsonptr_t ParseValue();
-        jsonptr_t ParsePrimitive();
-        jsonptr_t ParseNumber(bool);
-        jsonptr_t ParseKeyword();
-        jsonptr_t Error();
-    public:
-        JsonParser(
-            Lexer * lexer
-        ):  _lexer(lexer),
-            _token(0) {}
+namespace Json {
+    class Parser {
+        public:
+            static int Escape(Lexer &);
+            static int NextToken(Lexer &);
+        private:
+            Lexer * _lexer;
+            int _token;
+        protected:
+            int NextToken();
+            tree_t ParseObject();
+            tree_t ParseList();
+            void ParsePair(std::string &, tree_t &);
+            tree_t ParseValue();
+            tree_t ParsePrimitive();
+            tree_t ParseNumber(bool);
+            tree_t ParseKeyword();
+            tree_t Error();
+        public:
+            Parser(
+                Lexer * lexer
+            ):  _lexer(lexer),
+                _token(0) {}
 
-        jsonptr_t GetTree();
-        static jsonptr_t Tree(Lexer * lexer);
+            tree_t GetTree();
+            static tree_t Tree(Lexer * lexer);
+    };
 };
 
 #endif

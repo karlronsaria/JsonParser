@@ -197,6 +197,125 @@ void Tests::Init() {
             }
         },
         {
+            "JsonContextToString_Should_MatchJsonFileContent",
+            [](std::string & actual, std::string & expected) -> bool {
+                bool success = TestJsonParserDemo002(
+                    "res/input001.json",
+                    "res/expected011.txt",
+                    actual,
+                    expected
+                );
+
+                return success;
+            }
+        },
+        {
+            "JsonResultSet_Should_MatchStringInNestedObject",
+            [](std::string & actual, std::string & expected) -> bool {
+                std::shared_ptr<Json::Context<>> machine;
+
+                if (!StartJsonTreePostorderTest(
+                    "res/input001.json",
+                    actual,
+                    machine
+                )) {
+                    expected = "";
+                    return false;
+                }
+
+                actual =
+                    machine->GetResultSet()
+                        .At("link")
+                        .At("url")
+                        .ToString()
+                        ;
+                expected =
+                    "https://json.org/example.html";
+
+                if (expected.compare(actual))
+                    return false;
+
+                actual =
+                    machine->GetResultSet()
+                        .ToString()
+                        ;
+                expected =
+                    "{ \"link\": { \"url\": \"https://json.org/example.html\", \"retrieved\": \"2022_06_19\" }, \"glossary\": { \"title\": \"example glossary\", \"GlossDiv\": { \"title\": \"S\", \"GlossList\": { \"GlossEntry\": { \"ID\": \"SGML\", \"SortAs\": \"SGML\", \"GlossTerm\": \"Standard Generalized Markup Language\", \"Acronym\": \"SGML\", \"Abbrev\": \"ISO 8879:1986\", \"GlossDef\": { \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\", \"GlossSeeAlso\": [ \"GML\", \"XML\" ] }, \"GlossSee\": \"markup\" } } } } }";
+
+                if (expected.compare(actual))
+                    return false;
+
+                actual =
+                    machine->GetResultSet()
+                        .At("glossary")
+                        .At("GlossDiv")
+                        .At("GlossList")
+                        .At("GlossEntry")
+                        .At("GlossDef")
+                        .At("GlossSeeAlso")
+                        .At(1)
+                        .ToString()
+                        ;
+                expected =
+                    "XML";
+
+                if (expected.compare(actual))
+                    return false;
+
+                actual =
+                    machine->GetResultSet()
+                        ["glossary"]
+                        ["GlossDiv"]
+                        ["GlossList"]
+                        ["GlossEntry"]
+                        ["GlossDef"]
+                        ["GlossSeeAlso"]
+                        [1]
+                        .ToString()
+                        ;
+                expected =
+                    "XML";
+
+                if (expected.compare(actual))
+                    return false;
+
+                actual =
+                    machine->GetResultSet()
+                        .At("glo")
+                        .At("Glo")
+                        .At("Glo")
+                        .At("Glo")
+                        .At("Glo")
+                        .At("Glo")
+                        .At(1)
+                        .ToString()
+                        ;
+                expected =
+                    "";
+
+                if (expected.compare(actual))
+                    return false;
+
+                actual =
+                    machine->GetResultSet()
+                        ["glo"]
+                        ["Glo"]
+                        ["Glo"]
+                        ["Glo"]
+                        ["Glo"]
+                        ["Glo"]
+                        [1]
+                        .ToString()
+                        ;
+                expected =
+                    "";
+
+                return !expected.compare(actual);
+            }
+        /*
+        // TODO
+        },
+        {
             "JsonParser_Should_IdentifyHierarchyInJsonString",
             [](std::string & actual, std::string & expected) -> bool {
                 return TestJsonParserDemo001(
@@ -206,6 +325,7 @@ void Tests::Init() {
                     expected
                 );
             }
+        */
         }
     };
 }

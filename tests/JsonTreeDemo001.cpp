@@ -1,3 +1,4 @@
+/*
 #include "JsonTreeDemo001.h"
 
 std::ostream & MyJsonTreeVisitor::PutIndent() {
@@ -88,3 +89,4 @@ void MyJsonTreeVisitor::ForString(const std::string & value) {
     PutIndent();
     _stream << "String: [" << value << "]\n";
 }
+*/

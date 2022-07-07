@@ -1,38 +1,32 @@
 #include "JsonTree.h"
 
-void JsonPair::Accept(IJsonTreeVisitor * visitor) {
-    visitor->StartPair(_key);
-    visitor->StartValue();
-    _value->Accept(visitor);
-    visitor->EndValue();
-    visitor->EndPair();
+Json::Pointer Json::Object::Accept(Json::ITreeVisitor * visitor) {
+    std::vector<Json::Pointer> postvalues;
+
+    for (auto & value : _values)
+        postvalues.push_back(std::move(
+            value->Accept(visitor)
+        ));
+
+    return visitor->ForObject(
+        _keys,
+        std::move(postvalues)
+    );
 }
 
-void JsonObject::Accept(IJsonTreeVisitor * visitor) {
-    visitor->StartObject();
+Json::Pointer Json::List::Accept(Json::ITreeVisitor * visitor) {
+    std::vector<Json::Pointer> postvalues;
 
-    for (auto & pair : _pairs)
-        pair->Accept(visitor);
+    for (auto & value : _values)
+        postvalues.push_back(std::move(value->Accept(visitor)));
 
-    visitor->EndObject();
+    return visitor->ForList(std::move(postvalues));
 }
 
-void JsonList::Accept(IJsonTreeVisitor * visitor) {
-    visitor->StartList();
-
-    for (auto & value : _values) {
-        visitor->StartValue();
-        value->Accept(visitor);
-        visitor->EndValue();
-    }
-
-    visitor->EndList();
+Json::Pointer Json::String::Accept(Json::ITreeVisitor * visitor) {
+    return visitor->ForString(_payload);
 }
 
-void JsonString::Accept(IJsonTreeVisitor * visitor) {
-    visitor->ForString(_payload);
-}
-
-void JsonNumeric::Accept(IJsonTreeVisitor * visitor) {
-    visitor->ForNumeric(_payload);
+Json::Pointer Json::Numeric::Accept(Json::ITreeVisitor * visitor) {
+    return visitor->ForNumeric(_payload);
 }

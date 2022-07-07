@@ -3,30 +3,26 @@
 #define _JSONTREEDEMO002_H
 
 #include "../src/JsonTree.h"
-#include "../src/JsonMachine.h"
-#include <stack>
+#include "../src/JsonContext.h"
 
-class MyJsonMachineTreeVisitor: public IJsonTreeVisitor {
-    private:
-        JsonPointerMachine * _machine;
-        std::stack<JsonPointer> _objects;
-    public:
-        MyJsonMachineTreeVisitor();
+namespace Json {
+    class MyPostorderTreeVisitor: public ITreeVisitor {
+        private:
+            Context<> * _machine;
+        public:
+            MyPostorderTreeVisitor(
+                Context<> * machine
+            ):  _machine(machine) {}
 
-        virtual void StartObject() override;
-        virtual void EndObject() override;
-
-        virtual void StartList() override;
-        virtual void EndList() override;
-
-        virtual void StartPair(const std::string &) override;
-        virtual void EndPair() override;
-
-        virtual void StartValue() override;
-        virtual void EndValue() override;
-
-        virtual void ForString(const std::string &) override;
-        virtual void ForNumeric(Homonumeric) override;
+            virtual ~MyPostorderTreeVisitor() = default;
+            virtual Pointer ForString(const std::string &) override;
+            virtual Pointer ForNumeric(Homonumeric) override;
+            virtual Pointer ForObject(
+                const std::vector<std::string> &,
+                std::vector<Pointer> &&
+            ) override;
+            virtual Pointer ForList(std::vector<Pointer> &&) override;
+    };
 };
 
 #endif

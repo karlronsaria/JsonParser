@@ -1,44 +1,55 @@
 #include "JsonTreeDemo002.h"
 
-void MyJsonMachineTreeVisitor::StartObject() {
-    // TODO: empty stack check
-    auto top = _objects.top();
-    _objects.push(_machine->NewObject());
+Json::Pointer
+Json::MyPostorderTreeVisitor::ForObject(
+    const std::vector<std::string> & keys,
+    std::vector<Json::Pointer> && values
+) {
+    auto objectPtr = _machine->NewObject();
+    auto & object = _machine->Object(objectPtr.key);
+
+    for (int i = 0; i < keys.size(); ++i)
+        // TODO: Add collision checking
+        object.add(keys[i], values[i]);
+
+    return objectPtr;
 }
 
-void MyJsonMachineTreeVisitor::EndObject() {
+Json::Pointer
+Json::MyPostorderTreeVisitor::ForList(
+    std::vector<Json::Pointer> && values
+) {
+    auto listPtr = _machine->NewList();
+    auto & list = _machine->List(listPtr.key);
+
+    for (auto & value : values)
+        list.push_back(value);
+
+    return listPtr;
 }
 
-void MyJsonMachineTreeVisitor::StartList() {
-}
-
-void MyJsonMachineTreeVisitor::EndList() {
-}
-
-void MyJsonMachineTreeVisitor::StartPair(const std::string & key) {
-}
-
-void MyJsonMachineTreeVisitor::EndPair() {
-}
-
-void MyJsonMachineTreeVisitor::StartValue() {
-}
-
-void MyJsonMachineTreeVisitor::EndValue() {
-}
-
-void MyJsonMachineTreeVisitor::ForNumeric(Homonumeric value) {
+Json::Pointer
+Json::MyPostorderTreeVisitor::ForNumeric(
+    Homonumeric value
+) {
     switch (value.Mode) {
         case Homonumeric::Mode::BOOLEAN:
-            break;
+            return _machine->NewBoolean(value.Payload.Boolean);
         case Homonumeric::Mode::INTEGER:
-            break;
+            return _machine->NewInteger(value.Payload.Integer);
         case Homonumeric::Mode::FLOAT:
-            break;
+            return _machine->NewFloat(value.Payload.Float);
         default:
+            // TODO: Consider adding exception-handling here
             break;
     }
+
+    return Json::Pointer { Json::Type::NIL, 0 };
 }
 
-void MyJsonMachineTreeVisitor::ForString(const std::string & value) {
+Json::Pointer
+Json::MyPostorderTreeVisitor::ForString(
+    const std::string & value
+) {
+    return _machine->NewString(value);
 }

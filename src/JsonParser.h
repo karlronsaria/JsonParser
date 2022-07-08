@@ -51,7 +51,9 @@ namespace Json {
             std::unique_ptr<ITreeFactory<Tree_Type>>
             _factory;
 
-            Lexer * _lexer;
+            std::shared_ptr<Lexer>
+            _lexer;
+
             int _token;
         protected:
             int NextToken();
@@ -66,7 +68,7 @@ namespace Json {
         public:
             Parser(
                 std::unique_ptr<ITreeFactory<Tree_Type>> factory,
-                Lexer * lexer
+                std::shared_ptr<Lexer> lexer
             ):  _factory(std::move(factory)),
                 _lexer(lexer),
                 _token(0) {}
@@ -75,17 +77,17 @@ namespace Json {
 
             static ptr_t Tree(
                 std::unique_ptr<ITreeFactory<Tree_Type>> factory,
-                Lexer * lexer
+                std::shared_ptr<Lexer> lexer
             );
 
             template <typename Factory_Type>
             static ptr_t Tree(
-                Lexer * lexer
+                std::shared_ptr<Lexer> lexer
             );
 
             template <template <class> class Factory_Type>
             static ptr_t Tree(
-                Lexer * lexer
+                std::shared_ptr<Lexer> lexer
             );
     };
 };
@@ -284,7 +286,7 @@ template <typename T>
 typename Json::Parser<T>::ptr_t
 Json::Parser<T>::Tree(
     std::unique_ptr<ITreeFactory<T>> factory,
-    Lexer * lexer
+    std::shared_ptr<Lexer> lexer
 ) {
     return Parser(factory, lexer).GetTree();
 }
@@ -293,7 +295,7 @@ template <typename T>
 template <typename F>
 typename Json::Parser<T>::ptr_t
 Json::Parser<T>::Tree(
-    Lexer * lexer
+    std::shared_ptr<Lexer> lexer
 ) {
     return Parser<T>(
         std::make_unique<F>(),
@@ -306,7 +308,7 @@ template <typename T>
 template <template <class> class F>
 typename Json::Parser<T>::ptr_t
 Json::Parser<T>::Tree(
-    Lexer * lexer
+    std::shared_ptr<Lexer> lexer
 ) {
     return Parser<T>(
         std::make_unique<F<T>>(),

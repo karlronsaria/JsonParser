@@ -294,17 +294,15 @@ bool Tests::TestLexer(
     return !expected.compare(actual);
 }
 
-bool Tests::StartJsonTreePostorderTest(
+bool Tests::StartFileReader(
     const std::string & testFilePath,
     std::string & message,
-    std::shared_ptr<Json::Context<>> & machine
+    FileReader & inputReader
 ) {
     std::string testFile
         = Tests::WorkingDirectory
             + std::string("/")
             + testFilePath;
-
-    FileReader inputReader;
 
     if (!FileReader::New(testFile, inputReader)) {
         message = "Could not open file at "
@@ -314,13 +312,20 @@ bool Tests::StartJsonTreePostorderTest(
         return false;
     }
 
-    auto enumerator = std::make_shared<StreamEnumerator>(inputReader.Stream());
+    return true;
+}
+
+void Tests::StartJsonTreePostorderTest(
+    std::istream & inputStream,
+    std::string & message,
+    std::shared_ptr<Json::Context<>> & machine
+) {
+    auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
     auto lexer = std::make_shared<Lexer>(enumerator);
     machine = std::make_shared<Json::Context<>>();
-    auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine.get());
-    auto tree = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer.get());
-    tree->Accept(visitor.get());
-    return true;
+    auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine);
+    auto tree = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer);
+    tree->Accept(visitor);
 }
 
 bool Tests::TestJsonParserDemo002(
@@ -329,16 +334,24 @@ bool Tests::TestJsonParserDemo002(
     std::string & actual,
     std::string & expected
 ) {
-    std::shared_ptr<Json::Context<>> machine;
+    FileReader inputReader;
 
-    if (!StartJsonTreePostorderTest(
+    if (!StartFileReader(
         testFilePath,
         actual,
-        machine
+        inputReader
     )) {
-        expected = "";
+        expected = "Input file opened successfully";
         return false;
     }
+
+    std::shared_ptr<Json::Context<>> machine;
+
+    StartJsonTreePostorderTest(
+        inputReader.Stream(),
+        actual,
+        machine
+    );
 
     std::stringstream actualStream;
     std::ifstream expectedStream;

@@ -212,16 +212,24 @@ void Tests::Init() {
         {
             "JsonResultSet_Should_MatchStringInNestedObject",
             [](std::string & actual, std::string & expected) -> bool {
-                std::shared_ptr<Json::Context<>> machine;
+                FileReader inputReader;
 
-                if (!StartJsonTreePostorderTest(
+                if (!StartFileReader(
                     "res/input001.json",
                     actual,
-                    machine
+                    inputReader
                 )) {
-                    expected = "";
+                    expected = "Input file opened successfully";
                     return false;
                 }
+
+                std::shared_ptr<Json::Context<>> machine;
+
+                StartJsonTreePostorderTest(
+                    inputReader.Stream(),
+                    actual,
+                    machine
+                );
 
                 actual =
                     machine->GetResultSet()
@@ -313,7 +321,7 @@ void Tests::Init() {
                 return !expected.compare(actual);
             }
         /*
-        // TODO
+        // TODO quarantine
         },
         {
             "JsonParser_Should_IdentifyHierarchyInJsonString",

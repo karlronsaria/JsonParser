@@ -5,7 +5,12 @@
 #endif
 #define JSON_TREE_PARAMETER Json::Pointer
 
-Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
+#ifdef JSON_FACTORY_PTR 
+#undef JSON_FACTORY_PTR
+#endif
+#define JSON_FACTORY_PTR Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
+
+JSON_FACTORY_PTR
 Json::MyTreeFactory::NewObject(
     std::vector<std::string> keys,
     std::vector<ptr_t> values
@@ -16,7 +21,7 @@ Json::MyTreeFactory::NewObject(
     );
 }
 
-Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
+JSON_FACTORY_PTR
 Json::MyTreeFactory::NewList(
     std::vector<ptr_t> values
 ) {
@@ -25,14 +30,14 @@ Json::MyTreeFactory::NewList(
     );
 }
 
-Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
+JSON_FACTORY_PTR
 Json::MyTreeFactory::NewString(
     const std::string & value
 ) {
     return std::make_unique<String<JSON_TREE_PARAMETER>>(value);
 }
 
-Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
+JSON_FACTORY_PTR
 Json::MyTreeFactory::NewNumeric(
     Homonumeric value
 ) {
@@ -93,4 +98,5 @@ Json::MyPostorderTreeVisitor::ForString(
     return _machine->NewString(value);
 }
 
+#undef JSON_FACTORY_PTR
 #undef JSON_TREE_PARAMETER

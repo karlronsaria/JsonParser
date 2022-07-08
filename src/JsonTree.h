@@ -29,7 +29,7 @@ namespace Json {
     class Tree {
         public:
             virtual ~Tree() = default;
-            virtual T Accept(ITreeVisitor<T> *) = 0;
+            virtual T Accept(std::shared_ptr<ITreeVisitor<T>>) = 0;
     };
 
     #ifdef TREE_T
@@ -51,7 +51,7 @@ namespace Json {
             ):  _keys(std::move(keys)),
                 _values(std::move(values)) {}
 
-            virtual T Accept(ITreeVisitor<T> *) override;
+            virtual T Accept(std::shared_ptr<ITreeVisitor<T>>) override;
     };
 
     template <typename T>
@@ -64,7 +64,7 @@ namespace Json {
             List(std::vector<TREE_T(T)> values):
                 _values(std::move(values)) {}
 
-            virtual T Accept(ITreeVisitor<T> *) override;
+            virtual T Accept(std::shared_ptr<ITreeVisitor<T>>) override;
     };
 
     template <typename T>
@@ -77,7 +77,7 @@ namespace Json {
             String(const std::string & payload):
                 _payload(payload) {}
 
-            virtual T Accept(ITreeVisitor<T> *) override;
+            virtual T Accept(std::shared_ptr<ITreeVisitor<T>>) override;
     };
 
     template <typename T>
@@ -90,12 +90,12 @@ namespace Json {
             Numeric(Homonumeric payload):
                 _payload(payload) {}
 
-            virtual T Accept(ITreeVisitor<T> *) override;
+            virtual T Accept(std::shared_ptr<ITreeVisitor<T>>) override;
     };
 };
 
 template <typename T>
-T Json::Object<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+T Json::Object<T>::Accept(std::shared_ptr<ITreeVisitor<T>> visitor) {
     std::vector<T> postvalues;
 
     for (auto & value : _values)
@@ -110,7 +110,7 @@ T Json::Object<T>::Accept(Json::ITreeVisitor<T> * visitor) {
 }
 
 template <typename T>
-T Json::List<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+T Json::List<T>::Accept(std::shared_ptr<ITreeVisitor<T>> visitor) {
     std::vector<T> postvalues;
 
     for (auto & value : _values)
@@ -120,12 +120,12 @@ T Json::List<T>::Accept(Json::ITreeVisitor<T> * visitor) {
 }
 
 template <typename T>
-T Json::String<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+T Json::String<T>::Accept(std::shared_ptr<ITreeVisitor<T>> visitor) {
     return visitor->ForString(_payload);
 }
 
 template <typename T>
-T Json::Numeric<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+T Json::Numeric<T>::Accept(std::shared_ptr<ITreeVisitor<T>> visitor) {
     return visitor->ForNumeric(_payload);
 }
 

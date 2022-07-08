@@ -42,8 +42,14 @@ class Tests {
             bool ignoreWhiteSpace
         );
 
-        static bool StartJsonTreePostorderTest(
+        static bool StartFileReader(
             const std::string & testFilePath,
+            std::string & message,
+            FileReader & inputReader
+        );
+
+        static void StartJsonTreePostorderTest(
+            std::istream & inputStream,
             std::string & message,
             std::shared_ptr<Json::Context<>> & machine
         );

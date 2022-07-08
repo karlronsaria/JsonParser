@@ -3,6 +3,7 @@
 #define _JSONMACHINE_H
 
 #include <bitset>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -89,14 +90,15 @@ namespace Json {
                 friend class Context;
 
                 private:
-                    Context const * const
+                    // Raw pointer, not exposed
+                    Context<> const * const
                     _context;
 
                     Pointer
                     _pointer;
 
                     std::string RecurseToString(Pointer) const;
-                    ResultSet(Context const * const, const Pointer &);
+                    ResultSet(Context<> const * const, const Pointer &);
                 public:
                     ResultSet();
                     ResultSet(const ResultSet &) = default;
@@ -333,7 +335,7 @@ Json::Context<M>::GetResultSet() const {
 
 template <size_t M>
 Json::Context<M>::ResultSet::ResultSet(
-    Json::Context<M> const * const context,
+    Context<> const * const context,
     const Json::Pointer & pointer
 ):  _context(context),
     _pointer(pointer) {}

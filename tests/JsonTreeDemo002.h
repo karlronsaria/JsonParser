@@ -16,25 +16,17 @@ namespace Json {
                 std::vector<ptr_t> values
             ) override;
 
-            virtual ptr_t NewList(
-                std::vector<ptr_t> values
-            ) override;
-
-            virtual ptr_t NewString(
-                const std::string &
-            ) override;
-
-            virtual ptr_t NewNumeric(
-                Homonumeric
-            ) override;
+            virtual ptr_t NewList(std::vector<ptr_t>) override;
+            virtual ptr_t NewString(const std::string &) override;
+            virtual ptr_t NewNumeric(Homonumeric) override;
     };
 
     class MyPostorderTreeVisitor: public ITreeVisitor<Pointer> {
         private:
-            Context<> * _machine;
+            std::shared_ptr<Context<>> _machine;
         public:
             MyPostorderTreeVisitor(
-                Context<> * machine
+                std::shared_ptr<Context<>> machine
             ):  _machine(machine) {}
 
             virtual ~MyPostorderTreeVisitor() = default;

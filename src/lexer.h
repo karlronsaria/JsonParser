@@ -2,11 +2,11 @@
 #ifndef _LEXER_H
 #define _LEXER_H
 
+#include "IEnumerator.h"
 #include <string>
 #include <map>
 #include <math.h>
 #include <memory>
-#include "IEnumerator.h"
 
 enum Token {
     ERROR = 0,

@@ -1,43 +1,48 @@
 #include "JsonTreeDemo002.h"
 
-Json::ITreeFactory<Json::Tree>::ptr_t
+#ifdef JSON_TREE_PARAMETER
+#undef JSON_TREE_PARAMETER
+#endif
+#define JSON_TREE_PARAMETER Json::Pointer
+
+Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
 Json::MyTreeFactory::NewObject(
     std::vector<std::string> keys,
     std::vector<ptr_t> values
 ) {
-    return std::make_unique<Json::Object>(
+    return std::make_unique<Object<JSON_TREE_PARAMETER>>(
         std::move(keys),
         std::move(values)
     );
 }
 
-Json::ITreeFactory<Json::Tree>::ptr_t
+Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
 Json::MyTreeFactory::NewList(
     std::vector<ptr_t> values
 ) {
-    return std::make_unique<Json::List>(
+    return std::make_unique<List<JSON_TREE_PARAMETER>>(
         std::move(values)
     );
 }
 
-Json::ITreeFactory<Json::Tree>::ptr_t
+Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
 Json::MyTreeFactory::NewString(
     const std::string & value
 ) {
-    return std::make_unique<Json::String>(value);
+    return std::make_unique<String<JSON_TREE_PARAMETER>>(value);
 }
 
-Json::ITreeFactory<Json::Tree>::ptr_t
+Json::ITreeFactory<Json::Tree<JSON_TREE_PARAMETER>>::ptr_t
 Json::MyTreeFactory::NewNumeric(
     Homonumeric value
 ) {
-    return std::make_unique<Json::Numeric>(value);
+    return std::make_unique<Numeric<JSON_TREE_PARAMETER>>(value);
 }
 
-Json::Pointer
+JSON_TREE_PARAMETER
 Json::MyPostorderTreeVisitor::ForObject(
     const std::vector<std::string> & keys,
-    std::vector<Json::Pointer> && values
+    std::vector<JSON_TREE_PARAMETER> && values
 ) {
     auto objectPtr = _machine->NewObject();
     auto & object = _machine->Object(objectPtr.key);
@@ -49,9 +54,9 @@ Json::MyPostorderTreeVisitor::ForObject(
     return objectPtr;
 }
 
-Json::Pointer
+JSON_TREE_PARAMETER
 Json::MyPostorderTreeVisitor::ForList(
-    std::vector<Json::Pointer> && values
+    std::vector<JSON_TREE_PARAMETER> && values
 ) {
     auto listPtr = _machine->NewList();
     auto & list = _machine->List(listPtr.key);
@@ -62,7 +67,7 @@ Json::MyPostorderTreeVisitor::ForList(
     return listPtr;
 }
 
-Json::Pointer
+JSON_TREE_PARAMETER
 Json::MyPostorderTreeVisitor::ForNumeric(
     Homonumeric value
 ) {
@@ -78,12 +83,14 @@ Json::MyPostorderTreeVisitor::ForNumeric(
             break;
     }
 
-    return Json::Pointer { Json::Type::NIL, 0 };
+    return JSON_TREE_PARAMETER();
 }
 
-Json::Pointer
+JSON_TREE_PARAMETER
 Json::MyPostorderTreeVisitor::ForString(
     const std::string & value
 ) {
     return _machine->NewString(value);
 }
+
+#undef JSON_TREE_PARAMETER

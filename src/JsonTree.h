@@ -7,61 +7,68 @@
 #include <string>
 #include <vector>
 
-#include "JsonContext.h"
-
 namespace Json {
+    template <typename T>
     class Tree;
 
     // Postorder-traversal visitor
+    template <typename T>
     class ITreeVisitor {
         public:
             virtual ~ITreeVisitor() = default;
-            virtual Pointer ForString(const std::string &) = 0;
-            virtual Pointer ForNumeric(Homonumeric) = 0;
-            virtual Pointer ForObject(
+            virtual T ForString(const std::string &) = 0;
+            virtual T ForNumeric(Homonumeric) = 0;
+            virtual T ForObject(
                 const std::vector<std::string> &,
-                std::vector<Pointer> &&
+                std::vector<T> &&
             ) = 0;
-            virtual Pointer ForList(std::vector<Pointer> &&) = 0;
+            virtual T ForList(std::vector<T> &&) = 0;
     };
 
+    template <typename T>
     class Tree {
         public:
             virtual ~Tree() = default;
-            virtual Pointer Accept(ITreeVisitor *) = 0;
+            virtual T Accept(ITreeVisitor<T> *) = 0;
     };
 
-    typedef std::unique_ptr<Tree> tree_t;
+    #ifdef TREE_T
+    #undef TREE_T
+    #endif
+    #define TREE_T(T) std::unique_ptr<Json::Tree<T>>
 
-    class Object: public Tree {
+    template <typename T>
+    class Object: public Tree<T> {
         private:
             std::vector<std::string> _keys;
-            std::vector<tree_t> _values;
+            std::vector<TREE_T(T)> _values;
         public:
             virtual ~Object() = default;
 
             Object(
                 std::vector<std::string> keys,
-                std::vector<tree_t> values
+                std::vector<TREE_T(T)> values
             ):  _keys(std::move(keys)),
                 _values(std::move(values)) {}
 
-            virtual Pointer Accept(ITreeVisitor *) override;
+            virtual T Accept(ITreeVisitor<T> *) override;
     };
 
-    class List: public Tree {
+    template <typename T>
+    class List: public Tree<T> {
         private:
-            std::vector<tree_t> _values;
+            std::vector<TREE_T(T)> _values;
         public:
             virtual ~List() = default;
 
-            List(std::vector<tree_t> values):
+            List(std::vector<TREE_T(T)> values):
                 _values(std::move(values)) {}
 
-            virtual Pointer Accept(ITreeVisitor *) override;
+            virtual T Accept(ITreeVisitor<T> *) override;
     };
 
-    class String: public Tree {
+    template <typename T>
+    class String: public Tree<T> {
         private:
             std::string _payload;
         public:
@@ -70,10 +77,11 @@ namespace Json {
             String(const std::string & payload):
                 _payload(payload) {}
 
-            virtual Pointer Accept(ITreeVisitor *) override;
+            virtual T Accept(ITreeVisitor<T> *) override;
     };
 
-    class Numeric: public Tree {
+    template <typename T>
+    class Numeric: public Tree<T> {
         private:
             Homonumeric _payload;
         public:
@@ -82,8 +90,44 @@ namespace Json {
             Numeric(Homonumeric payload):
                 _payload(payload) {}
 
-            virtual Pointer Accept(ITreeVisitor *) override;
+            virtual T Accept(ITreeVisitor<T> *) override;
     };
 };
 
+template <typename T>
+T Json::Object<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+    std::vector<T> postvalues;
+
+    for (auto & value : _values)
+        postvalues.push_back(std::move(
+            value->Accept(visitor)
+        ));
+
+    return visitor->ForObject(
+        _keys,
+        std::move(postvalues)
+    );
+}
+
+template <typename T>
+T Json::List<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+    std::vector<T> postvalues;
+
+    for (auto & value : _values)
+        postvalues.push_back(std::move(value->Accept(visitor)));
+
+    return visitor->ForList(std::move(postvalues));
+}
+
+template <typename T>
+T Json::String<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+    return visitor->ForString(_payload);
+}
+
+template <typename T>
+T Json::Numeric<T>::Accept(Json::ITreeVisitor<T> * visitor) {
+    return visitor->ForNumeric(_payload);
+}
+
+#undef TREE_T
 #endif

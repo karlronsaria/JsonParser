@@ -2,13 +2,15 @@
 #ifndef _JSONPARSER_H
 #define _JSONPARSER_H
 
+#include "Homonumeric.h"
 #include "Lexer.h"
+#include <vector>
 
 namespace Json {
-    template <typename TreeT>
+    template <typename Tree_Type>
     class ITreeFactory {
         public:
-            typedef std::unique_ptr<TreeT>
+            typedef std::unique_ptr<Tree_Type>
             ptr_t;
 
             virtual ~ITreeFactory() = default;
@@ -37,13 +39,16 @@ namespace Json {
             static int NextToken(Lexer &);
     };
 
-    template <typename TreeT>
+    template <typename Tree_Type>
     class Parser {
         public:
-            typedef typename ITreeFactory<TreeT>::ptr_t
+            typedef typename std::unique_ptr<Tree_Type>
+            tree_t;
+
+            typedef typename ITreeFactory<Tree_Type>::ptr_t
             ptr_t;
         private:
-            std::unique_ptr<ITreeFactory<TreeT>>
+            std::unique_ptr<ITreeFactory<Tree_Type>>
             _factory;
 
             Lexer * _lexer;
@@ -60,7 +65,7 @@ namespace Json {
             ptr_t Error();
         public:
             Parser(
-                std::unique_ptr<ITreeFactory<TreeT>> factory,
+                std::unique_ptr<ITreeFactory<Tree_Type>> factory,
                 Lexer * lexer
             ):  _factory(std::move(factory)),
                 _lexer(lexer),
@@ -69,7 +74,7 @@ namespace Json {
             ptr_t GetTree();
 
             static ptr_t Tree(
-                std::unique_ptr<ITreeFactory<TreeT>> factory,
+                std::unique_ptr<ITreeFactory<Tree_Type>> factory,
                 Lexer * lexer
             );
 

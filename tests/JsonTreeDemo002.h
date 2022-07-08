@@ -7,7 +7,7 @@
 #include "../src/JsonContext.h"
 
 namespace Json {
-    class MyTreeFactory: public ITreeFactory<Tree> {
+    class MyTreeFactory: public ITreeFactory<Tree<Pointer>> {
         public:
             virtual ~MyTreeFactory() = default;
 
@@ -29,7 +29,7 @@ namespace Json {
             ) override;
     };
 
-    class MyPostorderTreeVisitor: public ITreeVisitor {
+    class MyPostorderTreeVisitor: public ITreeVisitor<Pointer> {
         private:
             Context<> * _machine;
         public:

@@ -2,10 +2,33 @@
 #ifndef _JSONTREEDEMO002_H
 #define _JSONTREEDEMO002_H
 
+#include "../src/JsonParser.h"
 #include "../src/JsonTree.h"
 #include "../src/JsonContext.h"
 
 namespace Json {
+    class MyTreeFactory: public ITreeFactory<Tree> {
+        public:
+            virtual ~MyTreeFactory() = default;
+
+            virtual ptr_t NewObject(
+                std::vector<std::string> keys,
+                std::vector<ptr_t> values
+            ) override;
+
+            virtual ptr_t NewList(
+                std::vector<ptr_t> values
+            ) override;
+
+            virtual ptr_t NewString(
+                const std::string &
+            ) override;
+
+            virtual ptr_t NewNumeric(
+                Homonumeric
+            ) override;
+    };
+
     class MyPostorderTreeVisitor: public ITreeVisitor {
         private:
             Context<> * _machine;

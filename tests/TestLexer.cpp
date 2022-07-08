@@ -129,7 +129,7 @@ bool Tests::TestLexerDemo002(
     int token;
 
     while (hasNext) {
-        token = Json::Parser::NextToken(myLexer);
+        token = Json::Parsing::NextToken(myLexer);
 
         switch(token) {
             case Token::ERROR:
@@ -318,7 +318,7 @@ bool Tests::StartJsonTreePostorderTest(
     auto lexer = std::make_shared<Lexer>(enumerator);
     machine = std::make_shared<Json::Context<>>();
     auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine.get());
-    auto tree = Json::Parser::Tree(lexer.get());
+    auto tree = Json::Parser<Json::Tree>::Tree<Json::MyTreeFactory>(lexer.get());
     tree->Accept(visitor.get());
     return true;
 }

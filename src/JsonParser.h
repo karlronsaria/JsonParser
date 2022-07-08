@@ -3,7 +3,6 @@
 #define _JSONPARSER_H
 
 #include "Lexer.h"
-#include "JsonTree.h"
 
 namespace Json {
     template <typename TreeT>
@@ -12,7 +11,7 @@ namespace Json {
             typedef std::unique_ptr<TreeT>
             ptr_t;
 
-            virtual ITreeFactory() = default;
+            virtual ~ITreeFactory() = default;
 
             virtual ptr_t NewObject(
                 std::vector<std::string> keys,
@@ -27,7 +26,7 @@ namespace Json {
                 const std::string &
             ) = 0;
 
-            virtual ptr_t Numeric(
+            virtual ptr_t NewNumeric(
                 Homonumeric
             ) = 0;
     };
@@ -38,10 +37,11 @@ namespace Json {
             static int NextToken(Lexer &);
     };
 
-    template <class TreeT, template <class> class FactoryT>
+    template <typename TreeT>
     class Parser {
         public:
-            typedef ITreeFactory<TreeT>::ptr_t ptr_t;
+            typedef typename ITreeFactory<TreeT>::ptr_t
+            ptr_t;
         private:
             std::unique_ptr<ITreeFactory<TreeT>>
             _factory;
@@ -60,25 +60,40 @@ namespace Json {
             ptr_t Error();
         public:
             Parser(
+                std::unique_ptr<ITreeFactory<TreeT>> factory,
                 Lexer * lexer
-            ):  _factory(std::make_unique<FactoryT<TreeT>>),
+            ):  _factory(std::move(factory)),
                 _lexer(lexer),
                 _token(0) {}
 
             ptr_t GetTree();
-            static ptr_t Tree(Lexer * lexer);
+
+            static ptr_t Tree(
+                std::unique_ptr<ITreeFactory<TreeT>> factory,
+                Lexer * lexer
+            );
+
+            template <typename Factory_Type>
+            static ptr_t Tree(
+                Lexer * lexer
+            );
+
+            template <template <class> class Factory_Type>
+            static ptr_t Tree(
+                Lexer * lexer
+            );
     };
 };
 
-template <class T, template <class> class F>
+template <typename T>
 int
-Json::Parser<T, F>::NextToken() {
+Json::Parser<T>::NextToken() {
     return _token = Json::Parsing::NextToken(*_lexer);
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::GetTree() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::GetTree() {
     NextToken();
 
     if (_token != '{')
@@ -87,9 +102,9 @@ Json::Parser<T, F>::GetTree() {
     return ParseObject();
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParseObject() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParseObject() {
     // TODO: Consider adding a kill condition at the
     //   start of each Parse function.
     std::vector<std::string> keys;
@@ -113,7 +128,6 @@ Json::Parser<T, F>::ParseObject() {
         return Error();
 
     return std::move(
-        // TODO: TREE POINTER 1
         _factory->NewObject(
             std::move(keys),
             std::move(values)
@@ -121,9 +135,9 @@ Json::Parser<T, F>::ParseObject() {
     );
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParseList() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParseList() {
     auto values = std::vector<tree_t>();
 
     do {
@@ -140,17 +154,16 @@ Json::Parser<T, F>::ParseList() {
     if (_token != ']')
         return Error();
 
-    // TODO: TREE POINTER 2
     return std::move(
-        _factory->NewList(std::move(values));
+        _factory->NewList(std::move(values))
     );
 }
 
-template <class T, template <class> class F>
+template <typename T>
 void
-Json::Parser<T, F>::ParsePair(
+Json::Parser<T>::ParsePair(
     std::string & key,
-    Json::Parser<T, F>::ptr_t & value
+    Json::Parser<T>::ptr_t & value
 ) {
     NextToken();
 
@@ -170,9 +183,9 @@ Json::Parser<T, F>::ParsePair(
     value = std::move(ParseValue());
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParseValue() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParseValue() {
     NextToken();
 
     if (_token == '[')
@@ -184,14 +197,13 @@ Json::Parser<T, F>::ParseValue() {
     return ParsePrimitive();
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParsePrimitive() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParsePrimitive() {
     switch ((Token)_token) {
         case Token::WORD:
             return ParseKeyword();
         case Token::STRING:
-            // TODO: TREE POINTER 3
             return std::move(
                 _factory->NewString(_lexer->String())
             );
@@ -205,21 +217,19 @@ Json::Parser<T, F>::ParsePrimitive() {
     return ParseNumber(false);
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParseNumber(bool negative) {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParseNumber(bool negative) {
     int factor = negative ? -1 : 1;
 
     switch ((Token)_token) {
         case Token::INTEGER:
-            // TODO: TREE POINTER 4
             return std::move(
                 _factory->NewNumeric(
                     Homonumeric::Integer(factor * _lexer->Integer())
                 )
             );
         case Token::FLOAT:
-            // TODO: TREE POINTER 5
             return std::move(
                 _factory->NewNumeric(
                     Homonumeric::Float(factor * _lexer->Float())
@@ -232,9 +242,9 @@ Json::Parser<T, F>::ParseNumber(bool negative) {
     return Error();
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::ParseKeyword() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::ParseKeyword() {
     std::string keyword = _lexer->String();
 
     if (keyword == "null")
@@ -251,7 +261,6 @@ Json::Parser<T, F>::ParseKeyword() {
     if (!value)
         return Error();
 
-    // TODO: TREE POINTER 6
     return std::move(
         _factory->NewNumeric(
             Homonumeric::Boolean((bool)(value - 1))
@@ -259,17 +268,46 @@ Json::Parser<T, F>::ParseKeyword() {
     );
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::Error() {
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::Error() {
     // TODO: Log error
     return nullptr;
 }
 
-template <class T, template <class> class F>
-Json::Parser<T, F>::ptr_t
-Json::Parser<T, F>::Tree(Lexer * lexer) {
-    return Parser(lexer).GetTree();
+template <typename T>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::Tree(
+    std::unique_ptr<ITreeFactory<T>> factory,
+    Lexer * lexer
+) {
+    return Parser(factory, lexer).GetTree();
+}
+
+template <typename T>
+template <typename F>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::Tree(
+    Lexer * lexer
+) {
+    return Parser<T>(
+        std::make_unique<F>(),
+        lexer
+    )
+    .GetTree();
+}
+
+template <typename T>
+template <template <class> class F>
+typename Json::Parser<T>::ptr_t
+Json::Parser<T>::Tree(
+    Lexer * lexer
+) {
+    return Parser<T>(
+        std::make_unique<F<T>>(),
+        lexer
+    )
+    .GetTree();
 }
 
 #endif

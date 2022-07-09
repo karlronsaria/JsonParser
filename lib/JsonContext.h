@@ -85,20 +85,24 @@ namespace Json {
 
     template <size_t MAX_BOOLEANS = 1024ULL>
     class Context {
+        private:
+            typedef
+            Context<MAX_BOOLEANS> const * const
+            // std::shared_ptr<const Context<MAX_BOOLEANS>>
+            context_ptr_t;
         public:
             class ResultSet {
                 friend class Context;
 
                 private:
-                    // Raw pointer, not exposed
-                    Context<> const * const
+                    context_ptr_t
                     _context;
 
                     Pointer
                     _pointer;
 
                     std::string RecurseToString(Pointer) const;
-                    ResultSet(Context<> const * const, const Pointer &);
+                    ResultSet(context_ptr_t, const Pointer &);
                 public:
                     ResultSet();
                     ResultSet(const ResultSet &) = default;
@@ -335,7 +339,7 @@ Json::Context<M>::GetResultSet() const {
 
 template <size_t M>
 Json::Context<M>::ResultSet::ResultSet(
-    Context<> const * const context,
+    Json::Context<M>::context_ptr_t context,
     const Json::Pointer & pointer
 ):  _context(context),
     _pointer(pointer) {}

@@ -1,10 +1,12 @@
 #pragma once
-#ifndef _JSONTREEDEMO002_H
-#define _JSONTREEDEMO002_H
+#ifndef _MYJSON_H
+#define _MYJSON_H
 
-#include "../src/JsonParser.h"
-#include "../src/JsonTree.h"
-#include "../src/JsonContext.h"
+#include "../lib/StreamEnumerator.h"
+#include "../lib/Lexer.h"
+#include "../lib/JsonParser.h"
+#include "../lib/JsonTree.h"
+#include "../lib/JsonContext.h"
 
 namespace Json {
     class MyTreeFactory: public ITreeFactory<Tree<Pointer>> {
@@ -38,6 +40,9 @@ namespace Json {
             ) override;
             virtual Pointer ForList(std::vector<Pointer> &&) override;
     };
+
+    std::shared_ptr<const Context<>>
+    GetContext(std::istream & inputStream);
 };
 
 #endif

@@ -2,7 +2,7 @@
 #ifndef _LEXERDEMO001_H
 #define _LEXERDEMO001_H
 
-#include "../src/lexer.h"
+#include "../lib/lexer.h"
 
 class ILexerVisitor {
     public:

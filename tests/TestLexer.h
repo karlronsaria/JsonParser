@@ -2,21 +2,17 @@
 #ifndef _TESTLEXER_H
 #define _TESTLEXER_H
 
-#include "../src/StringEnumerator.h"
-#include "../src/StreamEnumerator.h"
-#include "../src/JsonParser.h"
-#include "../src/other.h"
+#include "../lib/StringEnumerator.h"
+#include "../lib/other.h"
 #include "LexerDemo001.h"
 
 // // (2022_06_29) Implements the tree visitor only
 // #include "JsonTreeDemo001.h"
 
-#include "JsonTreeDemo002.h"
+#include "../src/MyJson.h"
 
 #include "FileReader.h"
 #include <sstream>
-#include <memory>
-#include <vector>
 
 typedef bool (*test_function_ptr)(std::string&, std::string&);
 
@@ -46,12 +42,6 @@ class Tests {
             const std::string & testFilePath,
             std::string & message,
             FileReader & inputReader
-        );
-
-        static void StartJsonTreePostorderTest(
-            std::istream & inputStream,
-            std::string & message,
-            std::shared_ptr<Json::Context<>> & machine
         );
 
         static bool TestLexerDemo002(

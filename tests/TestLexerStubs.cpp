@@ -223,13 +223,7 @@ void Tests::Init() {
                     return false;
                 }
 
-                std::shared_ptr<Json::Context<>> machine;
-
-                StartJsonTreePostorderTest(
-                    inputReader.Stream(),
-                    actual,
-                    machine
-                );
+                auto machine = Json::GetContext(inputReader.Stream());
 
                 actual =
                     machine->GetResultSet()

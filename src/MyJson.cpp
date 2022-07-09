@@ -1,4 +1,4 @@
-#include "JsonTreeDemo002.h"
+#include "MyJson.h"
 
 #ifdef JSON_TREE_PARAMETER
 #undef JSON_TREE_PARAMETER
@@ -96,6 +96,19 @@ Json::MyPostorderTreeVisitor::ForString(
     const std::string & value
 ) {
     return _machine->NewString(value);
+}
+
+std::shared_ptr<const Json::Context<>>
+Json::GetContext(
+    std::istream & inputStream
+) {
+    auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
+    auto lexer = std::make_shared<Lexer>(enumerator);
+    auto machine = std::make_shared<Json::Context<>>();
+    auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine);
+    auto tree = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer);
+    tree->Accept(visitor);
+    return machine;
 }
 
 #undef JSON_FACTORY_PTR

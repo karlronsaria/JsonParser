@@ -315,19 +315,6 @@ bool Tests::StartFileReader(
     return true;
 }
 
-void Tests::StartJsonTreePostorderTest(
-    std::istream & inputStream,
-    std::string & message,
-    std::shared_ptr<Json::Context<>> & machine
-) {
-    auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
-    auto lexer = std::make_shared<Lexer>(enumerator);
-    machine = std::make_shared<Json::Context<>>();
-    auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine);
-    auto tree = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer);
-    tree->Accept(visitor);
-}
-
 bool Tests::TestJsonParserDemo002(
     const std::string & testFilePath,
     const std::string & expectedFilePath,
@@ -345,13 +332,7 @@ bool Tests::TestJsonParserDemo002(
         return false;
     }
 
-    std::shared_ptr<Json::Context<>> machine;
-
-    StartJsonTreePostorderTest(
-        inputReader.Stream(),
-        actual,
-        machine
-    );
+    auto machine = Json::GetContext(inputReader.Stream());
 
     std::stringstream actualStream;
     std::ifstream expectedStream;

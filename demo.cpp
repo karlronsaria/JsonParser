@@ -13,5 +13,18 @@ int main(int argc, char ** args) {
     Tests::WorkingDirectory = std::string(args[1]);
     Tests::Init();
     Tests::Run(std::cout);
+
+/*
+    Tests::WorkingDirectory = std::string(args[1]);
+    FileReader input;
+
+    if (!FileReader::New(Tests::WorkingDirectory + "/" + "./res/input001.json", input))
+        return 1;
+
+    auto context = Json::GetContext(input.Stream());
+    auto resultSet = context->GetResultSet();
+    std::cout << resultSet.ToString();
+*/
+
     return 0;
 }

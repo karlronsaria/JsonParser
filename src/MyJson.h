@@ -6,7 +6,7 @@
 #include "../lib/Lexer.h"
 #include "../lib/JsonParser.h"
 #include "../lib/JsonTree.h"
-#include "../lib/JsonContext.h"
+#include "../lib/JsonMachine.h"
 
 namespace Json {
     class MyTreeFactory: public ITreeFactory<Tree<Pointer>> {
@@ -25,10 +25,10 @@ namespace Json {
 
     class MyPostorderTreeVisitor: public ITreeVisitor<Pointer> {
         private:
-            std::shared_ptr<Context> _machine;
+            std::shared_ptr<Machine> _machine;
         public:
             MyPostorderTreeVisitor(
-                std::shared_ptr<Context> machine
+                std::shared_ptr<Machine> machine
             ):  _machine(machine) {}
 
             virtual ~MyPostorderTreeVisitor() = default;
@@ -41,8 +41,8 @@ namespace Json {
             virtual Pointer ForList(std::vector<Pointer> &&) override;
     };
 
-    std::shared_ptr<const Context>
-    GetContext(std::istream & inputStream);
+    std::shared_ptr<const Machine>
+    GetMachine(std::istream & inputStream);
 };
 
 #endif

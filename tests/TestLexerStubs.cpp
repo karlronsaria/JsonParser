@@ -223,7 +223,7 @@ void Tests::Init() {
                     return false;
                 }
 
-                auto machine = Json::GetContext(inputReader.Stream());
+                auto machine = Json::GetMachine(inputReader.Stream());
 
                 actual =
                     machine->GetResultSet()

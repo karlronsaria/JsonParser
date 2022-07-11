@@ -81,24 +81,24 @@ namespace Json {
     typedef ObjectDefinition<std::string>
     object_t;
 
-    class Context {
+    class Machine {
         private:
             typedef
-            Context const *
-            context_ptr_t;
+            Machine const *
+            machine_ptr_t;
         public:
             class ResultSet {
-                friend class Context;
+                friend class Machine;
 
                 private:
-                    context_ptr_t
-                    _context;
+                    machine_ptr_t
+                    _machine;
 
                     Pointer
                     _pointer;
 
                     std::string RecurseToString(Pointer) const;
-                    ResultSet(context_ptr_t, const Pointer &);
+                    ResultSet(machine_ptr_t, const Pointer &);
                 public:
                     ResultSet();
                     ResultSet(const ResultSet &) = default;
@@ -134,7 +134,7 @@ namespace Json {
             std::vector<object_t>
             _objects;
         public:
-            virtual ~Context() = default;
+            virtual ~Machine() = default;
 
             Pointer NewObject();
             Pointer NewList();

@@ -332,7 +332,7 @@ bool Tests::TestJsonParserDemo002(
         return false;
     }
 
-    auto machine = Json::GetContext(inputReader.Stream());
+    auto machine = Json::GetMachine(inputReader.Stream());
 
     std::stringstream actualStream;
     std::ifstream expectedStream;

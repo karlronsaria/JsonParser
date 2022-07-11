@@ -1,4 +1,4 @@
-#include "JsonContext.h"
+#include "JsonMachine.h"
 
 std::string
 Json::ToString(const Json::Type & typeCode) {
@@ -23,7 +23,7 @@ Json::ToString(const Json::Type & typeCode) {
 }
 
 Json::Pointer
-Json::Context::NewObject() {
+Json::Machine::NewObject() {
     _objects.push_back(std::move(Json::object_t()));
     return Json::Pointer {
         Json::Type::OBJECT,
@@ -32,7 +32,7 @@ Json::Context::NewObject() {
 }
 
 Json::Pointer
-Json::Context::NewList() {
+Json::Machine::NewList() {
     _lists.push_back(std::move(Json::list_t()));
     return Json::Pointer {
         Json::Type::LIST,
@@ -40,9 +40,9 @@ Json::Context::NewList() {
     };
 }
 
-#define DEFINE_JSONCONTEXT_BUILDER(NAME, PARAM_TYPE, VECTOR, TYPE_SYMBOL) \
+#define DEFINE_JSONMACHINE_BUILDER(NAME, PARAM_TYPE, VECTOR, TYPE_SYMBOL) \
     Json::Pointer \
-    Json::Context::New##NAME(PARAM_TYPE value) { \
+    Json::Machine::New##NAME(PARAM_TYPE value) { \
         VECTOR.push_back(value); \
         return Json::Pointer { \
             TYPE_SYMBOL, \
@@ -50,50 +50,50 @@ Json::Context::NewList() {
         }; \
     }
 
-DEFINE_JSONCONTEXT_BUILDER(String, const std::string &, _strings, Json::Type::STRING)
-DEFINE_JSONCONTEXT_BUILDER(Integer, int, _integers, Json::Type::INTEGER)
-DEFINE_JSONCONTEXT_BUILDER(Float, float, _floats, Json::Type::FLOAT)
-DEFINE_JSONCONTEXT_BUILDER(Boolean, bool, _booleans, Json::Type::BOOLEAN)
-#undef DEFINE_JSONCONTEXT_BUILDER
+DEFINE_JSONMACHINE_BUILDER(String, const std::string &, _strings, Json::Type::STRING)
+DEFINE_JSONMACHINE_BUILDER(Integer, int, _integers, Json::Type::INTEGER)
+DEFINE_JSONMACHINE_BUILDER(Float, float, _floats, Json::Type::FLOAT)
+DEFINE_JSONMACHINE_BUILDER(Boolean, bool, _booleans, Json::Type::BOOLEAN)
+#undef DEFINE_JSONMACHINE_BUILDER
 
-#define DEFINE_JSONCONTEXT_GETTER(RETURN, NAME, RESOURCE) \
+#define DEFINE_JSONMACHINE_GETTER(RETURN, NAME, RESOURCE) \
     RETURN & \
-    Json::Context::NAME(key_t key) { \
+    Json::Machine::NAME(key_t key) { \
         return RESOURCE[key]; \
     }
 
-DEFINE_JSONCONTEXT_GETTER(Json::object_t, Object, _objects)
-DEFINE_JSONCONTEXT_GETTER(Json::list_t, List, _lists)
-DEFINE_JSONCONTEXT_GETTER(std::string, String, _strings)
-DEFINE_JSONCONTEXT_GETTER(int, Integer, _integers)
-DEFINE_JSONCONTEXT_GETTER(float, Float, _floats)
-#undef DEFINE_JSONCONTEXT_GETTER
+DEFINE_JSONMACHINE_GETTER(Json::object_t, Object, _objects)
+DEFINE_JSONMACHINE_GETTER(Json::list_t, List, _lists)
+DEFINE_JSONMACHINE_GETTER(std::string, String, _strings)
+DEFINE_JSONMACHINE_GETTER(int, Integer, _integers)
+DEFINE_JSONMACHINE_GETTER(float, Float, _floats)
+#undef DEFINE_JSONMACHINE_GETTER
 
 void
-Json::Context::SetBoolean(key_t key, bool value) {
+Json::Machine::SetBoolean(key_t key, bool value) {
     _booleans.set((size_t)key, value);
 }
 
-#define DEFINE_JSONCONTEXT_CONST_GETTER(RETURN, NAME, RESOURCE) \
+#define DEFINE_JSONMACHINE_CONST_GETTER(RETURN, NAME, RESOURCE) \
     const RETURN & \
-    Json::Context::NAME(key_t key) const { \
+    Json::Machine::NAME(key_t key) const { \
         return RESOURCE.at(key); \
     }
 
-DEFINE_JSONCONTEXT_CONST_GETTER(Json::object_t, Object, _objects)
-DEFINE_JSONCONTEXT_CONST_GETTER(Json::list_t, List, _lists)
-DEFINE_JSONCONTEXT_CONST_GETTER(std::string, String, _strings)
-DEFINE_JSONCONTEXT_CONST_GETTER(int, Integer, _integers)
-DEFINE_JSONCONTEXT_CONST_GETTER(float, Float, _floats)
-#undef DEFINE_JSONCONTEXT_GETTER
+DEFINE_JSONMACHINE_CONST_GETTER(Json::object_t, Object, _objects)
+DEFINE_JSONMACHINE_CONST_GETTER(Json::list_t, List, _lists)
+DEFINE_JSONMACHINE_CONST_GETTER(std::string, String, _strings)
+DEFINE_JSONMACHINE_CONST_GETTER(int, Integer, _integers)
+DEFINE_JSONMACHINE_CONST_GETTER(float, Float, _floats)
+#undef DEFINE_JSONMACHINE_GETTER
 
 bool
-Json::Context::Boolean(key_t key) const {
+Json::Machine::Boolean(key_t key) const {
     return _booleans[(size_t)key];
 }
 
 std::string
-Json::Context::ToString() const {
+Json::Machine::ToString() const {
     std::ostringstream oss;
 
     oss << "Objects:\n";
@@ -149,8 +149,8 @@ Json::Context::ToString() const {
     return oss.str();
 }
 
-const typename Json::Context::ResultSet
-Json::Context::GetResultSet() const {
+const typename Json::Machine::ResultSet
+Json::Machine::GetResultSet() const {
     ResultSet result;
     
     if (_objects.empty())
@@ -160,59 +160,59 @@ Json::Context::GetResultSet() const {
     return std::move(result);
 }
 
-Json::Context::ResultSet::ResultSet(
-    Json::Context::context_ptr_t context,
+Json::Machine::ResultSet::ResultSet(
+    Json::Machine::machine_ptr_t machine,
     const Json::Pointer & pointer
-):  _context(context),
+):  _machine(machine),
     _pointer(pointer) {}
 
-Json::Context::ResultSet::ResultSet():
-    _context(nullptr),
+Json::Machine::ResultSet::ResultSet():
+    _machine(nullptr),
     _pointer(Json::Pointer{ Json::Type::NIL, 0 }) {}
 
-#define DEFINE_JSONCONTEXT_RESULTSET_GETTER(NAME, TYPE, TYPE_SYMBOL) \
+#define DEFINE_JSONMACHINE_RESULTSET_GETTER(NAME, TYPE, TYPE_SYMBOL) \
     bool \
-    Json::Context::ResultSet::As##NAME(TYPE & value) const { \
+    Json::Machine::ResultSet::As##NAME(TYPE & value) const { \
         if (_pointer.type != TYPE_SYMBOL) \
             return false; \
     \
-        value = _context->NAME(_pointer.key); \
+        value = _machine->NAME(_pointer.key); \
         return true; \
     }
 
-DEFINE_JSONCONTEXT_RESULTSET_GETTER(Integer, int, Type::INTEGER)
-DEFINE_JSONCONTEXT_RESULTSET_GETTER(Float, float, Type::FLOAT)
-DEFINE_JSONCONTEXT_RESULTSET_GETTER(String, std::string, Type::STRING)
-#undef DEFINE_JSONCONTEXT_RESULTSET_GETTER
+DEFINE_JSONMACHINE_RESULTSET_GETTER(Integer, int, Type::INTEGER)
+DEFINE_JSONMACHINE_RESULTSET_GETTER(Float, float, Type::FLOAT)
+DEFINE_JSONMACHINE_RESULTSET_GETTER(String, std::string, Type::STRING)
+#undef DEFINE_JSONMACHINE_RESULTSET_GETTER
 
-typename Json::Context::ResultSet
-Json::Context::ResultSet::At(int index) const {
+typename Json::Machine::ResultSet
+Json::Machine::ResultSet::At(int index) const {
     if (_pointer.type != Type::LIST)
-        return ResultSet(_context, Pointer{ Type::NIL, 0 });
+        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
 
-    return ResultSet(_context, _context->List(_pointer.key).at(index));
+    return ResultSet(_machine, _machine->List(_pointer.key).at(index));
 }
 
-typename Json::Context::ResultSet
-Json::Context::ResultSet::At(const std::string & key) const {
+typename Json::Machine::ResultSet
+Json::Machine::ResultSet::At(const std::string & key) const {
     if (_pointer.type != Type::OBJECT)
-        return ResultSet(_context, Pointer{ Type::NIL, 0 });
+        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
 
-    return ResultSet(_context, _context->Object(_pointer.key).at(key));
+    return ResultSet(_machine, _machine->Object(_pointer.key).at(key));
 }
 
-typename Json::Context::ResultSet
-Json::Context::ResultSet::operator[](int index) const {
+typename Json::Machine::ResultSet
+Json::Machine::ResultSet::operator[](int index) const {
     return At(index);
 }
 
-typename Json::Context::ResultSet
-Json::Context::ResultSet::operator[](const std::string & key) const {
+typename Json::Machine::ResultSet
+Json::Machine::ResultSet::operator[](const std::string & key) const {
     return At(key);
 }
 
 std::string
-Json::Context::ResultSet::RecurseToString(
+Json::Machine::ResultSet::RecurseToString(
     Json::Pointer value
 ) const {
     std::ostringstream outss;
@@ -221,13 +221,13 @@ Json::Context::ResultSet::RecurseToString(
         case Type::STRING:
             outss
                 << '"'
-                << _context->String(value.key)
+                << _machine->String(value.key)
                 << '"';
 
             break;
         default:
             outss
-                << ResultSet(_context, value).ToString();
+                << ResultSet(_machine, value).ToString();
 
             break;
     }
@@ -236,35 +236,35 @@ Json::Context::ResultSet::RecurseToString(
 }
 
 Json::Type
-Json::Context::ResultSet::TypeCode() const {
+Json::Machine::ResultSet::TypeCode() const {
     return _pointer.type;
 }
 
 bool
-Json::Context::ResultSet::IsNil() const {
+Json::Machine::ResultSet::IsNil() const {
     return _pointer.type == Type::NIL;
 }
 
 std::string
-Json::Context::ResultSet::ToString() const {
+Json::Machine::ResultSet::ToString() const {
     std::ostringstream outss;
 
     switch (_pointer.type) {
         case Json::Type::STRING:
-            return _context->String(_pointer.key);
+            return _machine->String(_pointer.key);
         case Json::Type::INTEGER:
-            outss << _context->Integer(_pointer.key);
+            outss << _machine->Integer(_pointer.key);
             break;
         case Json::Type::FLOAT:
-            outss << _context->Float(_pointer.key);
+            outss << _machine->Float(_pointer.key);
             break;
         case Json::Type::BOOLEAN:
-            outss << _context->Boolean(_pointer.key);
+            outss << _machine->Boolean(_pointer.key);
             break;
         case Json::Type::OBJECT:
             {
                 outss << "{ ";
-                auto object = _context->Object(_pointer.key);
+                auto object = _machine->Object(_pointer.key);
                 std::string key;
 
                 for (int i = 0; i < object.keys().size(); ++i) {
@@ -287,7 +287,7 @@ Json::Context::ResultSet::ToString() const {
         case Json::Type::LIST:
             {
                 outss << "[ ";
-                auto list = _context->List(_pointer.key);
+                auto list = _machine->List(_pointer.key);
 
                 for (int i = 0; i < list.size(); ++i) {
                     outss << RecurseToString(list.at(i));

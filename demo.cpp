@@ -1,4 +1,5 @@
 #include "tests/TestLexer.h"
+#include "lib/VectorBitset.h"
 
 int main(int argc, char ** args) {
     if (argc <= 1) {

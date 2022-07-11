@@ -314,6 +314,45 @@ void Tests::Init() {
 
                 return !expected.compare(actual);
             }
+        },
+        {
+            "VectorBitset_Should_PushBackAndSet",
+            [](std::string & actual, std::string & expected) -> bool {
+                vector_bitset<> myBitset;
+
+                for (int i = 1; i <= 67; ++i)
+                    myBitset.push_back(false);
+
+                myBitset.set(7);
+                myBitset.set(53);
+
+                expected = "0000000000000100000000000000000000000000000000000000000000010000000";
+                actual = myBitset.to_string();
+
+                if (expected.compare(actual))
+                    return false;
+
+                expected = "010";
+                std::ostringstream oss;
+
+                oss << myBitset[6]
+                    << myBitset[7]
+                    << myBitset[8];
+
+                actual = oss.str();
+
+                if (expected.compare(actual))
+                    return false;
+
+                oss.str("");
+
+                oss << myBitset[52]
+                    << myBitset[53]
+                    << myBitset[54];
+
+                actual = oss.str();
+                return !expected.compare(actual);
+            }
         /*
         // TODO quarantine
         },

@@ -16,6 +16,7 @@
         "initializer_list": "cpp",
         "limits": "cpp",
         "concepts": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "bitset": "cpp"
     }
 }

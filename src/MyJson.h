@@ -25,10 +25,10 @@ namespace Json {
 
     class MyPostorderTreeVisitor: public ITreeVisitor<Pointer> {
         private:
-            std::shared_ptr<Context<>> _machine;
+            std::shared_ptr<Context> _machine;
         public:
             MyPostorderTreeVisitor(
-                std::shared_ptr<Context<>> machine
+                std::shared_ptr<Context> machine
             ):  _machine(machine) {}
 
             virtual ~MyPostorderTreeVisitor() = default;
@@ -41,7 +41,7 @@ namespace Json {
             virtual Pointer ForList(std::vector<Pointer> &&) override;
     };
 
-    std::shared_ptr<const Context<>>
+    std::shared_ptr<const Context>
     GetContext(std::istream & inputStream);
 };
 

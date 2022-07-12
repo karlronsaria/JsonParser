@@ -43,6 +43,9 @@ namespace Json {
 
     std::shared_ptr<const Machine>
     GetMachine(std::istream & inputStream);
+
+    std::shared_ptr<Machine>
+    GetMutableMachine(std::istream & inputStream);
 };
 
 #endif

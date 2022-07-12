@@ -102,6 +102,11 @@ std::shared_ptr<const Json::Machine>
 Json::GetMachine(
     std::istream & inputStream
 ) {
+    return GetMutableMachine(inputStream);
+}
+
+std::shared_ptr<Json::Machine>
+Json::GetMutableMachine(std::istream & inputStream) {
     auto enumerator = std::make_shared<StreamEnumerator>(inputStream);
     auto lexer = std::make_shared<Lexer>(enumerator);
     auto machine = std::make_shared<Json::Machine>();

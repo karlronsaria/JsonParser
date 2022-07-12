@@ -149,160 +149,22 @@ Json::Machine::ToString() const {
     return oss.str();
 }
 
-const typename Json::Machine::ResultSet
+#define BLOCK_JSONMACHINE_GETRESULTSET(PARAM_TYPE) \
+    ResultSet<PARAM_TYPE>( \
+        this, \
+        _objects.empty() \
+            ? Pointer{ Type::NIL, 0 } \
+            : Pointer{ Type::OBJECT, (int)_objects.size() - 1 } \
+    )
+
+typename Json::Machine::ResultSet<Json::Machine *>
+Json::Machine::GetResultSet() {
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine *);
+}
+
+const typename Json::Machine::ResultSet<Json::Machine const *>
 Json::Machine::GetResultSet() const {
-    ResultSet result;
-    
-    if (_objects.empty())
-        result = ResultSet(this, Pointer{ Type::NIL, 0 });
-
-    result = ResultSet(this, Pointer{ Type::OBJECT, (int)_objects.size() - 1 });
-    return std::move(result);
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine const *);
 }
 
-Json::Machine::ResultSet::ResultSet(
-    Json::Machine::machine_ptr_t machine,
-    const Json::Pointer & pointer
-):  _machine(machine),
-    _pointer(pointer) {}
-
-Json::Machine::ResultSet::ResultSet():
-    _machine(nullptr),
-    _pointer(Json::Pointer{ Json::Type::NIL, 0 }) {}
-
-#define DEFINE_JSONMACHINE_RESULTSET_GETTER(NAME, TYPE, TYPE_SYMBOL) \
-    bool \
-    Json::Machine::ResultSet::As##NAME(TYPE & value) const { \
-        if (_pointer.type != TYPE_SYMBOL) \
-            return false; \
-    \
-        value = _machine->NAME(_pointer.key); \
-        return true; \
-    }
-
-DEFINE_JSONMACHINE_RESULTSET_GETTER(Integer, int, Type::INTEGER)
-DEFINE_JSONMACHINE_RESULTSET_GETTER(Float, float, Type::FLOAT)
-DEFINE_JSONMACHINE_RESULTSET_GETTER(String, std::string, Type::STRING)
-#undef DEFINE_JSONMACHINE_RESULTSET_GETTER
-
-typename Json::Machine::ResultSet
-Json::Machine::ResultSet::At(int index) const {
-    if (_pointer.type != Type::LIST)
-        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
-
-    return ResultSet(_machine, _machine->List(_pointer.key).at(index));
-}
-
-typename Json::Machine::ResultSet
-Json::Machine::ResultSet::At(const std::string & key) const {
-    if (_pointer.type != Type::OBJECT)
-        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
-
-    return ResultSet(_machine, _machine->Object(_pointer.key).at(key));
-}
-
-typename Json::Machine::ResultSet
-Json::Machine::ResultSet::operator[](int index) const {
-    return At(index);
-}
-
-typename Json::Machine::ResultSet
-Json::Machine::ResultSet::operator[](const std::string & key) const {
-    return At(key);
-}
-
-std::string
-Json::Machine::ResultSet::RecurseToString(
-    Json::Pointer value
-) const {
-    std::ostringstream outss;
-
-    switch (value.type) {
-        case Type::STRING:
-            outss
-                << '"'
-                << _machine->String(value.key)
-                << '"';
-
-            break;
-        default:
-            outss
-                << ResultSet(_machine, value).ToString();
-
-            break;
-    }
-
-    return outss.str();
-}
-
-Json::Type
-Json::Machine::ResultSet::TypeCode() const {
-    return _pointer.type;
-}
-
-bool
-Json::Machine::ResultSet::IsNil() const {
-    return _pointer.type == Type::NIL;
-}
-
-std::string
-Json::Machine::ResultSet::ToString() const {
-    std::ostringstream outss;
-
-    switch (_pointer.type) {
-        case Json::Type::STRING:
-            return _machine->String(_pointer.key);
-        case Json::Type::INTEGER:
-            outss << _machine->Integer(_pointer.key);
-            break;
-        case Json::Type::FLOAT:
-            outss << _machine->Float(_pointer.key);
-            break;
-        case Json::Type::BOOLEAN:
-            outss << _machine->Boolean(_pointer.key);
-            break;
-        case Json::Type::OBJECT:
-            {
-                outss << "{ ";
-                auto object = _machine->Object(_pointer.key);
-                std::string key;
-
-                for (int i = 0; i < object.keys().size(); ++i) {
-                    key = object.keys()[i];
-
-                    outss
-                        << '"'
-                        << key
-                        << "\": "
-                        << RecurseToString(object.at(key));
-
-                    if (i < object.keys().size() - 1)
-                        outss << ", ";
-                }
-
-                outss << " }";
-            }
-
-            break;
-        case Json::Type::LIST:
-            {
-                outss << "[ ";
-                auto list = _machine->List(_pointer.key);
-
-                for (int i = 0; i < list.size(); ++i) {
-                    outss << RecurseToString(list.at(i));
-
-                    if (i < list.size() - 1)
-                        outss << ", ";
-                }
-
-                outss << " ]";
-            }
-
-            break;
-        case Json::Type::NIL:
-            return "";
-    }
-
-    return outss.str();
-}
+#undef BLOCK_JSONMACHINE_GETRESULTSET

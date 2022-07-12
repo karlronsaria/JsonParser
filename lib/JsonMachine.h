@@ -87,18 +87,19 @@ namespace Json {
             Machine const *
             machine_ptr_t;
         public:
+            template <typename Machine_Pointer_Type = machine_ptr_t>
             class ResultSet {
                 friend class Machine;
 
                 private:
-                    machine_ptr_t
+                    Machine_Pointer_Type
                     _machine;
 
                     Pointer
                     _pointer;
 
                     std::string RecurseToString(Pointer) const;
-                    ResultSet(machine_ptr_t, const Pointer &);
+                    ResultSet(Machine_Pointer_Type, const Pointer &);
                 public:
                     ResultSet();
                     ResultSet(const ResultSet &) = default;
@@ -114,6 +115,10 @@ namespace Json {
                     Json::Type TypeCode() const;
                     bool IsNil() const;
                     std::string ToString() const;
+
+                    bool ChangeString(const std::string &);
+                    bool ChangeInteger(int);
+                    bool ChangeFloat(float);
             };
         private:
             std::vector<std::string>
@@ -158,9 +163,201 @@ namespace Json {
             bool Boolean(key_t) const;
 
             std::string ToString() const;
-
-            const ResultSet GetResultSet() const;
+        public:
+            const ResultSet<const Machine *> GetResultSet() const;
+            ResultSet<Machine *> GetResultSet();
     };
 };
+
+template <typename T>
+Json::Machine::ResultSet<T>::ResultSet(
+    T machine,
+    const Json::Pointer & pointer
+):  _machine(machine),
+    _pointer(pointer) {}
+
+template <typename T>
+Json::Machine::ResultSet<T>::ResultSet():
+    _machine(nullptr),
+    _pointer(Json::Pointer{ Json::Type::NIL, 0 }) {}
+
+#define DEFINE_JSONMACHINE_RESULTSET_GETTER(NAME, TYPE, TYPE_SYMBOL) \
+    template <typename T> \
+    bool \
+    Json::Machine::ResultSet<T>::As##NAME(TYPE & value) const { \
+        if (_pointer.type != TYPE_SYMBOL) \
+            return false; \
+        value = _machine->NAME(_pointer.key); \
+        return true; \
+    }
+
+DEFINE_JSONMACHINE_RESULTSET_GETTER(Integer, int, Type::INTEGER)
+DEFINE_JSONMACHINE_RESULTSET_GETTER(Float, float, Type::FLOAT)
+DEFINE_JSONMACHINE_RESULTSET_GETTER(String, std::string, Type::STRING)
+#undef DEFINE_JSONMACHINE_RESULTSET_GETTER
+
+template <typename T>
+typename Json::Machine::ResultSet<T>
+Json::Machine::ResultSet<T>::At(int index) const {
+    if (_pointer.type != Type::LIST)
+        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
+
+    return ResultSet(_machine, _machine->List(_pointer.key).at(index));
+}
+
+template <typename T>
+typename Json::Machine::ResultSet<T>
+Json::Machine::ResultSet<T>::At(const std::string & key) const {
+    if (_pointer.type != Type::OBJECT)
+        return ResultSet(_machine, Pointer{ Type::NIL, 0 });
+
+    return ResultSet(_machine, _machine->Object(_pointer.key).at(key));
+}
+
+template <typename T>
+typename Json::Machine::ResultSet<T>
+Json::Machine::ResultSet<T>::operator[](int index) const {
+    return At(index);
+}
+
+template <typename T>
+typename Json::Machine::ResultSet<T>
+Json::Machine::ResultSet<T>::operator[](const std::string & key) const {
+    return At(key);
+}
+
+template <typename T>
+std::string
+Json::Machine::ResultSet<T>::RecurseToString(
+    Json::Pointer value
+) const {
+    std::ostringstream outss;
+
+    switch (value.type) {
+        case Type::STRING:
+            outss
+                << '"'
+                << _machine->String(value.key)
+                << '"';
+
+            break;
+        default:
+            outss
+                << ResultSet(_machine, value).ToString();
+
+            break;
+    }
+
+    return outss.str();
+}
+
+template <typename T>
+Json::Type
+Json::Machine::ResultSet<T>::TypeCode() const {
+    return _pointer.type;
+}
+
+template <typename T>
+bool
+Json::Machine::ResultSet<T>::IsNil() const {
+    return _pointer.type == Type::NIL;
+}
+
+template <typename T>
+std::string
+Json::Machine::ResultSet<T>::ToString() const {
+    std::ostringstream outss;
+
+    switch (_pointer.type) {
+        case Json::Type::STRING:
+            return _machine->String(_pointer.key);
+        case Json::Type::INTEGER:
+            outss << _machine->Integer(_pointer.key);
+            break;
+        case Json::Type::FLOAT:
+            outss << _machine->Float(_pointer.key);
+            break;
+        case Json::Type::BOOLEAN:
+            outss << _machine->Boolean(_pointer.key);
+            break;
+        case Json::Type::OBJECT:
+            {
+                outss << "{ ";
+                auto object = _machine->Object(_pointer.key);
+                std::string key;
+
+                for (int i = 0; i < object.keys().size(); ++i) {
+                    key = object.keys()[i];
+
+                    outss
+                        << '"'
+                        << key
+                        << "\": "
+                        << RecurseToString(object.at(key));
+
+                    if (i < object.keys().size() - 1)
+                        outss << ", ";
+                }
+
+                outss << " }";
+            }
+
+            break;
+        case Json::Type::LIST:
+            {
+                outss << "[ ";
+                auto list = _machine->List(_pointer.key);
+
+                for (int i = 0; i < list.size(); ++i) {
+                    outss << RecurseToString(list.at(i));
+
+                    if (i < list.size() - 1)
+                        outss << ", ";
+                }
+
+                outss << " ]";
+            }
+
+            break;
+        case Json::Type::NIL:
+            return "";
+    }
+
+    return outss.str();
+}
+
+template <typename T>
+bool Json::Machine::ResultSet<T>::ChangeString(const std::string & value) {
+    if (TypeCode() != Type::STRING)
+        return false;
+
+    _machine->String(_pointer.key) = value;
+    return true;
+}
+
+template <typename T>
+bool Json::Machine::ResultSet<T>::ChangeInteger(int value) {
+    switch (TypeCode()) {
+        case Type::INTEGER:
+            _machine->Integer(_pointer.key) = value;
+            return true;
+        case Type::BOOLEAN:
+            _machine->SetBoolean(_pointer.key, value);
+            return true;
+        default:
+            break;
+    }
+
+    return false;
+}
+
+template <typename T>
+bool Json::Machine::ResultSet<T>::ChangeFloat(float value) {
+    if (TypeCode() != Type::FLOAT)
+        return false;
+
+    _machine->Float(_pointer.key) = value;
+    return true;
+}
 
 #endif

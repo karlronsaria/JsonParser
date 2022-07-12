@@ -17,6 +17,11 @@
         "limits": "cpp",
         "concepts": "cpp",
         "iterator": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "compare": "cpp",
+        "random": "cpp",
+        "new": "cpp",
+        "cmath": "cpp",
+        "type_traits": "cpp"
     }
 }

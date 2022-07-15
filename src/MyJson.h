@@ -7,6 +7,7 @@
 #include "../lib/JsonParser.h"
 #include "../lib/JsonTree.h"
 #include "../lib/JsonMachine.h"
+#include "../lib/JsonBuilder.h"
 
 namespace Json {
     class MyTreeFactory: public ITreeFactory<Tree<Pointer>> {

@@ -9,7 +9,34 @@ int main(int argc, char ** args) {
     }
 
     Tests::WorkingDirectory = std::string(args[1]);
-    Tests::Init();
-    Tests::Run(std::cout);
+    FileReader in;
+
+    if (!FileReader::New(Tests::WorkingDirectory + "/res/input02.json", in))
+        return 1;
+
+    auto machine = Json::GetMachine(in.Stream());
+    float expense;
+
+    machine
+        ->GetResultSet()
+        ["PERSONS"]
+        .Where([](auto p) { return p["WHO"].Equals("Janet"); })
+        .back()
+        ["WEEK"]
+        .Where([](auto p) { return p["NUMBER"].Equals("5"); })
+        .back()
+        ["EXPENSE"]
+        .Where([](auto p) { return p["WHAT"].Equals("Car"); })
+        .back()
+        ["AMOUNT"]
+        .AsFloat(expense)
+        ;
+
+    std::cout
+        << expense;
+
+    // Tests::WorkingDirectory = std::string(args[1]);
+    // Tests::Init();
+    // Tests::Run(std::cout);
     return 0;
 }

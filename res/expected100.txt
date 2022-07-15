@@ -1,0 +1,103 @@
+MACHINE TO_STRING
+-----------------
+Objects:
+  0:
+    Pair 0:
+      Key: [author]
+      Value:
+        Type: String
+        Index: 0
+    Pair 1:
+      Key: [date]
+      Value:
+        Type: String
+        Index: 1
+    Pair 2:
+      Key: [projects]
+      Value:
+        Type: List
+        Index: 0
+    Pair 3:
+      Key: [numbers]
+      Value:
+        Type: List
+        Index: 1
+    Pair 4:
+      Key: [link]
+      Value:
+        Type: Object
+        Index: 1
+    Pair 5:
+      Key: [what]
+      Value:
+        Type: String
+        Index: 10
+  1:
+    Pair 0:
+      Key: [site]
+      Value:
+        Type: String
+        Index: 5
+    Pair 1:
+      Key: [video]
+      Value:
+        Type: Object
+        Index: 2
+    Pair 2:
+      Key: [url]
+      Value:
+        Type: String
+        Index: 8
+    Pair 3:
+      Key: [retrieved]
+      Value:
+        Type: String
+        Index: 9
+  2:
+    Pair 0:
+      Key: [title]
+      Value:
+        Type: String
+        Index: 6
+    Pair 1:
+      Key: [author]
+      Value:
+        Type: String
+        Index: 7
+Lists:
+  0:
+    Type: String
+    Index: 2
+    Type: String
+    Index: 3
+    Type: String
+    Index: 4
+  1:
+    Type: Integer
+    Index: 0
+    Type: Float
+    Index: 0
+    Type: Boolean
+    Index: 0
+Strings:
+  0: [karlr]
+  1: [2022_07_13]
+  2: [FileReader]
+  3: [Lexer]
+  4: [JsonBuilder]
+  5: [YouTube.com]
+  6: [Unterpants - Genocide Ending (SPOILERS)]
+  7: [Sr Pelo]
+  8: [https://www.youtube.com/watch?v=Yw0OeCMB1MM]
+  9: [2022_07_13]
+  10: [the]
+Integers:
+  0: [137]
+Floats:
+  0: [12.3333]
+Booleans:
+  0: [true]
+
+RESULT_SET TO_STRING
+--------------------
+{ "author": "karlr", "date": "2022_07_13", "projects": [ "FileReader", "Lexer", "JsonBuilder" ], "numbers": [ 137, 12.3333, true ], "link": { "site": "YouTube.com", "video": { "title": "Unterpants - Genocide Ending (SPOILERS)", "author": "Sr Pelo" }, "url": "https://www.youtube.com/watch?v=Yw0OeCMB1MM", "retrieved": "2022_07_13" }, "what": "the" }

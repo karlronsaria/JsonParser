@@ -101,10 +101,10 @@ void Tests::Run(std::ostream & out) {
 
     for (auto test : _list) {
         if (test.definition(actual, expected)) {
-            out << test.name << ": Success\n";
+            out << test.name << ":\n✅ Success\n\n";
         }
         else {
-            out << test.name << ": Failure\n";
+            out << test.name << ":\n❌ Failure\n";
             out << "\n  Actual   : " << actual;
             out << "\n  Expected : " << expected << '\n';
         }
@@ -247,8 +247,8 @@ bool Tests::TestJsonParserDemo001(
     if (GetNextDifferentLine(
         expectedReader.Stream(),
         actualStream,
-        actual,
-        expected) < 0
+        expected,
+        actual) < 0
     ) {
         return false;
     }
@@ -362,7 +362,7 @@ bool Tests::TestJsonParserDemo002(
     return 0 > GetNextDifferentLine(
         expectedReader.Stream(),
         actualStream,
-        actual,
-        expected
+        expected,
+        actual
     );
 }

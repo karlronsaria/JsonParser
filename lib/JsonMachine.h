@@ -112,6 +112,9 @@ namespace Json {
                     ResultSet At(const std::string &) const;
                     ResultSet operator[](int) const;
                     ResultSet operator[](const std::string &) const;
+                    std::vector<ResultSet> Where(bool (*filter)(ResultSet)) const;
+                    int Compare(ResultSet) const;
+                    bool Equals(const std::string &) const;
                     Json::Type TypeCode() const;
                     bool IsNil() const;
                     std::string ToString() const;
@@ -138,8 +141,13 @@ namespace Json {
 
             std::vector<object_t>
             _objects;
+
+            key_t _start;
         public:
             virtual ~Machine() = default;
+            Machine();
+
+            void SetStartingObject(key_t);
 
             Pointer NewObject();
             Pointer NewList();
@@ -163,9 +171,18 @@ namespace Json {
             bool Boolean(key_t) const;
 
             std::string ToString() const;
-        public:
-            const ResultSet<const Machine *> GetResultSet() const;
-            ResultSet<Machine *> GetResultSet();
+
+            const ResultSet<const Machine *>
+            GetResultSet() const;
+
+            ResultSet<Machine *>
+            GetResultSet();
+
+            const ResultSet<const Machine *>
+            GetResultSet(key_t start) const;
+
+            ResultSet<Machine *>
+            GetResultSet(key_t start);
     };
 };
 
@@ -227,6 +244,46 @@ Json::Machine::ResultSet<T>::operator[](const std::string & key) const {
 }
 
 template <typename T>
+std::vector<Json::Machine::ResultSet<T>>
+Json::Machine::ResultSet<T>::Where(bool (*filter)(ResultSet)) const {
+    std::vector<ResultSet> results;
+
+    if (_pointer.type != Type::LIST) {
+        results.push_back(
+            ResultSet(
+                _machine,
+                Pointer{ Type::NIL, 0 }
+            )
+        );
+
+        return std::move(results);
+    }
+
+    auto list = _machine->List(_pointer.key);
+
+    for (Pointer pointer : list) {
+        ResultSet temp(_machine, pointer);
+
+        if (filter(temp))
+            results.push_back(temp);
+    }
+
+    return std::move(results);
+}
+
+template <typename T>
+int
+Json::Machine::ResultSet<T>::Compare(ResultSet other) const {
+    return ToString().compare(other.ToString());
+}
+
+template <typename T>
+bool
+Json::Machine::ResultSet<T>::Equals(const std::string & toString) const {
+    return !ToString().compare(toString);
+}
+
+template <typename T>
 std::string
 Json::Machine::ResultSet<T>::RecurseToString(
     Json::Pointer value
@@ -278,7 +335,10 @@ Json::Machine::ResultSet<T>::ToString() const {
             outss << _machine->Float(_pointer.key);
             break;
         case Json::Type::BOOLEAN:
-            outss << _machine->Boolean(_pointer.key);
+            outss << (
+                _machine->Boolean(_pointer.key)
+                    ? "true" : "false"
+            );
             break;
         case Json::Type::OBJECT:
             {

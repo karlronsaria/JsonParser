@@ -200,7 +200,7 @@ void Tests::Init() {
             "JsonContextToString_Should_MatchJsonFileContent",
             [](std::string & actual, std::string & expected) -> bool {
                 bool success = TestJsonParserDemo002(
-                    "res/input001.json",
+                    "res/input01.json",
                     "res/expected011.txt",
                     actual,
                     expected
@@ -215,7 +215,7 @@ void Tests::Init() {
                 FileReader inputReader;
 
                 if (!StartFileReader(
-                    "res/input001.json",
+                    "res/input01.json",
                     actual,
                     inputReader
                 )) {
@@ -353,6 +353,114 @@ void Tests::Init() {
                 actual = oss.str();
                 return !expected.compare(actual);
             }
+        },
+        {
+            "JsonBuilder_Should_MatchJsonFileContent",
+            [](std::string & actual, std::string & expected) -> bool {
+                FileReader expectedReader;
+
+                if (!StartFileReader(
+                    "res/expected100.txt",
+                    actual,
+                    expectedReader
+                )) {
+                    expected = "Expected file opened successfully";
+                    return false;
+                }
+
+                Json::Builder builder;
+
+                builder
+                    .Object()
+                        .Pair("author")
+                            .String("karlr")
+                        .Pair("date")
+                            .String("2022_07_13")
+                        .Pair("projects")
+                            .List()
+                                .Value()
+                                    .String("FileReader")
+                                .Value()
+                                    .String("Lexer")
+                                .Value()
+                                    .String("JsonBuilder")
+                        .Pair("numbers")
+                            .List()
+                                .Value()
+                                    .Integer(137)
+                                .Value()
+                                    .Float(12.33333337)
+                                .Value()
+                                    .Boolean(true)
+                        .Pair("link")
+                            .Object()
+                                .Pair("site")
+                                    .String("YouTube.com")
+                                .Pair("video")
+                                    .Object()
+                                        .Pair("title")
+                                            .String("Unterpants - Genocide Ending (SPOILERS)")
+                                        .Pair("author")
+                                            .String("Sr Pelo")
+                                    .Pop()
+                                .Pair("url")
+                                    .String("https://www.youtube.com/watch?v=Yw0OeCMB1MM")
+                                .Pair("retrieved")
+                                    .String("2022_07_13")
+                            .Pop()
+                        .Pair("what")
+                            .String("the")
+                    ;
+
+                std::stringstream actualStream;
+
+                actualStream
+                    << "MACHINE TO_STRING\n"
+                    << "-----------------\n"
+                    << builder
+                        .Machine()
+                        ->ToString()
+                    << '\n'
+                    << "RESULT_SET TO_STRING\n"
+                    << "--------------------\n"
+                    << builder
+                        .Machine()
+                        ->GetResultSet()
+                        .ToString()
+                    << "\n"
+                    ;
+
+                if (0 <= GetNextDifferentLine(
+                    expectedReader.Stream(),
+                    actualStream,
+                    expected,
+                    actual
+                ))
+                    return false;
+
+                expected = "Lexer";
+                actual = builder
+                    .Machine()
+                    ->GetResultSet()
+                    .At("projects")
+                    .At(1)
+                    .ToString()
+                    ;
+
+                if (expected.compare(actual))
+                    return false;
+
+                expected = "JsonBuilder";
+                actual = builder
+                    .Machine()
+                    ->GetResultSet()
+                    ["projects"]
+                    [2]
+                    .ToString()
+                    ;
+
+                return !expected.compare(actual);
+            }
         /*
         // TODO quarantine
         },
@@ -360,8 +468,8 @@ void Tests::Init() {
             "JsonParser_Should_IdentifyHierarchyInJsonString",
             [](std::string & actual, std::string & expected) -> bool {
                 return TestJsonParserDemo001(
-                    "res/input001.json",
-                    "res/expected001.txt",
+                    "res/input01.json",
+                    "res/expected010.txt",
                     actual,
                     expected
                 );

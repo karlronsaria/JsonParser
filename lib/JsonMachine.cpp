@@ -22,6 +22,14 @@ Json::ToString(const Json::Type & typeCode) {
     return "";
 }
 
+Json::Machine::Machine():
+    _start(-1) {}
+
+void
+Json::Machine::SetStartingObject(key_t start) {
+    _start = start;
+}
+
 Json::Pointer
 Json::Machine::NewObject() {
     _objects.push_back(std::move(Json::object_t()));
@@ -99,14 +107,14 @@ Json::Machine::ToString() const {
     oss << "Objects:\n";
 
     for (int i = 0; i < _objects.size(); ++i) {
-        oss << "  Pair " << i << ":\n";
+        oss << "  " << i << ":\n";
         auto & object = _objects[i];
 
         for (int j = 0; j < object.keys().size(); ++j) {
             auto & key = object.keys().at(j);
             auto value = object.at(key);
 
-            oss << "    " << j << ":\n"
+            oss << "    Pair " << j << ":\n"
                 << "      Key: [" << key << "]\n"
                 << "      Value:\n"
                 << "        Type: " << Json::ToString(value.type) << '\n'
@@ -144,27 +152,44 @@ Json::Machine::ToString() const {
     oss << "Booleans:\n";
 
     for (int i = 0; i < _booleans.size(); ++i)
-        oss << "  " << i << ": [" << _booleans[i] << "]\n";
+        oss << "  " << i << ": ["
+            << (_booleans[i] ? "true" : "false")
+            << "]\n";
 
     return oss.str();
 }
 
-#define BLOCK_JSONMACHINE_GETRESULTSET(PARAM_TYPE) \
+#define BLOCK_JSONMACHINE_GETRESULTSET(PARAM_TYPE, START) \
     ResultSet<PARAM_TYPE>( \
         this, \
         _objects.empty() \
             ? Pointer{ Type::NIL, 0 } \
-            : Pointer{ Type::OBJECT, (int)_objects.size() - 1 } \
+            : Pointer{ \
+                Type::OBJECT, \
+                START < 0 \
+                    ? (int)_objects.size() - 1 \
+                    : START \
+            } \
     )
 
 typename Json::Machine::ResultSet<Json::Machine *>
 Json::Machine::GetResultSet() {
-    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine *);
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine *, _start);
 }
 
 const typename Json::Machine::ResultSet<Json::Machine const *>
 Json::Machine::GetResultSet() const {
-    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine const *);
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine const *, _start);
+}
+
+typename Json::Machine::ResultSet<Json::Machine *>
+Json::Machine::GetResultSet(key_t start) {
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine *, start);
+}
+
+const typename Json::Machine::ResultSet<Json::Machine const *>
+Json::Machine::GetResultSet(key_t start) const {
+    return BLOCK_JSONMACHINE_GETRESULTSET(Json::Machine const *, start);
 }
 
 #undef BLOCK_JSONMACHINE_GETRESULTSET

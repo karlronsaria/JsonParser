@@ -6,6 +6,11 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <type_traits>
+
+// **note: sfinae
+//   link: https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error#:~:text=Substitution%20failure%20is%20not%20an%20error%20(SFINAE)%20refers%20to%20a,to%20describe%20related%20programming%20techniques.
+//   retrieved: 2022_07_26
 
 namespace Json {
     enum Type {
@@ -204,6 +209,7 @@ Json::Machine::ResultSet<T>::ResultSet():
     Json::Machine::ResultSet<T>::As##NAME(TYPE & value) const { \
         if (_pointer.type != TYPE_SYMBOL) \
             return false; \
+        /* TODO: sfinae **see above */ \
         value = _machine->NAME(_pointer.key); \
         return true; \
     }
@@ -219,6 +225,7 @@ Json::Machine::ResultSet<T>::At(int index) const {
     if (_pointer.type != Type::LIST)
         return ResultSet(_machine, Pointer{ Type::NIL, 0 });
 
+    /* TODO: sfinae **see above */
     return ResultSet(_machine, _machine->List(_pointer.key).at(index));
 }
 
@@ -228,6 +235,7 @@ Json::Machine::ResultSet<T>::At(const std::string & key) const {
     if (_pointer.type != Type::OBJECT)
         return ResultSet(_machine, Pointer{ Type::NIL, 0 });
 
+    /* TODO: sfinae **see above */
     return ResultSet(_machine, _machine->Object(_pointer.key).at(key));
 }
 
@@ -259,6 +267,7 @@ Json::Machine::ResultSet<T>::Where(bool (*filter)(ResultSet)) const {
         return std::move(results);
     }
 
+    /* TODO: sfinae **see above */
     auto list = _machine->List(_pointer.key);
 
     for (Pointer pointer : list) {
@@ -294,6 +303,7 @@ Json::Machine::ResultSet<T>::RecurseToString(
         case Type::STRING:
             outss
                 << '"'
+                /* TODO: sfinae **see above */
                 << _machine->String(value.key)
                 << '"';
 
@@ -327,15 +337,19 @@ Json::Machine::ResultSet<T>::ToString() const {
 
     switch (_pointer.type) {
         case Json::Type::STRING:
+            /* TODO: sfinae **see above */
             return _machine->String(_pointer.key);
         case Json::Type::INTEGER:
+            /* TODO: sfinae **see above */
             outss << _machine->Integer(_pointer.key);
             break;
         case Json::Type::FLOAT:
+            /* TODO: sfinae **see above */
             outss << _machine->Float(_pointer.key);
             break;
         case Json::Type::BOOLEAN:
             outss << (
+                /* TODO: sfinae **see above */
                 _machine->Boolean(_pointer.key)
                     ? "true" : "false"
             );
@@ -343,6 +357,7 @@ Json::Machine::ResultSet<T>::ToString() const {
         case Json::Type::OBJECT:
             {
                 outss << "{ ";
+                /* TODO: sfinae **see above */
                 auto object = _machine->Object(_pointer.key);
                 std::string key;
 
@@ -366,6 +381,7 @@ Json::Machine::ResultSet<T>::ToString() const {
         case Json::Type::LIST:
             {
                 outss << "[ ";
+                /* TODO: sfinae **see above */
                 auto list = _machine->List(_pointer.key);
 
                 for (int i = 0; i < list.size(); ++i) {
@@ -391,6 +407,7 @@ bool Json::Machine::ResultSet<T>::ChangeString(const std::string & value) {
     if (TypeCode() != Type::STRING)
         return false;
 
+    /* TODO: sfinae **see above */
     _machine->String(_pointer.key) = value;
     return true;
 }
@@ -399,9 +416,11 @@ template <typename T>
 bool Json::Machine::ResultSet<T>::ChangeInteger(int value) {
     switch (TypeCode()) {
         case Type::INTEGER:
+            /* TODO: sfinae **see above */
             _machine->Integer(_pointer.key) = value;
             return true;
         case Type::BOOLEAN:
+            /* TODO: sfinae **see above */
             _machine->SetBoolean(_pointer.key, value);
             return true;
         default:
@@ -416,6 +435,7 @@ bool Json::Machine::ResultSet<T>::ChangeFloat(float value) {
     if (TypeCode() != Type::FLOAT)
         return false;
 
+    /* TODO: sfinae **see above */
     _machine->Float(_pointer.key) = value;
     return true;
 }

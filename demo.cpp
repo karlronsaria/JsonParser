@@ -1,5 +1,7 @@
 #include "tests/TestLexer.h"
 
+#define RUN_TESTS
+
 int main(int argc, char ** args) {
     if (argc <= 1) {
         std::cout
@@ -8,6 +10,7 @@ int main(int argc, char ** args) {
         return 1;
     }
 
+#ifndef RUN_TESTS
     Tests::WorkingDirectory = std::string(args[1]);
     FileReader in;
 
@@ -34,9 +37,10 @@ int main(int argc, char ** args) {
 
     std::cout
         << expense;
-
-    // Tests::WorkingDirectory = std::string(args[1]);
-    // Tests::Init();
-    // Tests::Run(std::cout);
+#else
+    Tests::WorkingDirectory = std::string(args[1]);
+    Tests::Init();
+    Tests::Run(std::cout);
+#endif
     return 0;
 }

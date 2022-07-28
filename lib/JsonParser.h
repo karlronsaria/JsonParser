@@ -5,6 +5,11 @@
 #include "Homonumeric.h"
 #include "Lexer.h"
 #include <vector>
+#include <type_traits>
+
+// **note: sfinae
+//   link: https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error#:~:text=Substitution%20failure%20is%20not%20an%20error%20(SFINAE)%20refers%20to%20a,to%20describe%20related%20programming%20techniques.
+//   retrieved: 2022_07_26
 
 namespace Json {
     template <typename Tree_Type>
@@ -47,6 +52,14 @@ namespace Json {
 
             typedef typename ITreeFactory<Tree_Type>::ptr_t
             ptr_t;
+
+            struct ResultSet {
+                bool Success;
+                ptr_t Tree;
+                std::string Message;
+                Token Token;
+                int Index;
+            };
         private:
             std::unique_ptr<ITreeFactory<Tree_Type>>
             _factory;
@@ -57,14 +70,15 @@ namespace Json {
             int _token;
         protected:
             int NextToken();
-            ptr_t ParseObject();
-            ptr_t ParseList();
-            void ParsePair(std::string &, ptr_t &);
-            ptr_t ParseValue();
-            ptr_t ParsePrimitive();
-            ptr_t ParseNumber(bool);
-            ptr_t ParseKeyword();
-            ptr_t Error();
+            ResultSet ParseObject();
+            ResultSet ParseList();
+            void ParsePair(std::string &, ResultSet &);
+            ResultSet ParseValue();
+            ResultSet ParsePrimitive();
+            ResultSet ParseNumber(bool);
+            ResultSet ParseKeyword();
+            ResultSet Error(const std::string &);
+            ResultSet Subtree(ptr_t &&);
         public:
             Parser(
                 std::unique_ptr<ITreeFactory<Tree_Type>> factory,
@@ -73,20 +87,22 @@ namespace Json {
                 _lexer(lexer),
                 _token(0) {}
 
-            ptr_t GetTree();
+            ResultSet GetTree();
 
-            static ptr_t Tree(
+            static ResultSet Tree(
                 std::unique_ptr<ITreeFactory<Tree_Type>> factory,
                 std::shared_ptr<Lexer> lexer
             );
 
+            /* TODO: sfinae **see above */ \
             template <typename Factory_Type>
-            static ptr_t Tree(
+            static ResultSet Tree(
                 std::shared_ptr<Lexer> lexer
             );
 
+            /* TODO: sfinae **see above */ \
             template <template <class> class Factory_Type>
-            static ptr_t Tree(
+            static ResultSet Tree(
                 std::shared_ptr<Lexer> lexer
             );
     };
@@ -99,70 +115,88 @@ Json::Parser<T>::NextToken() {
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::GetTree() {
     NextToken();
 
     if (_token != '{')
-        return Error();
+        // Error, gnostic
+        return Error("Expected '{'");
 
+    // Subtree, agnostic
     return ParseObject();
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParseObject() {
-    // TODO: Consider adding a kill condition at the
+    // [x] TODO: Consider adding a kill condition at the
     //   start of each Parse function.
+    //   
+    //   2022_07_28: If the code reaches this section,
+    //   then no error has occurred, and there's no need
+    //   for a kill condition.
     std::vector<std::string> keys;
     std::vector<tree_t> values;
     std::string key;
-    tree_t value;
+    ResultSet value;
 
     do {
+        // Subtree, agnostic
         ParsePair(key, value);
 
-        if (_token == Token::ERROR)
-            return Error();
+        if (!value.Success)
+            // Error, agnostic
+            return value;
 
         keys.push_back(std::move(key));
-        values.push_back(std::move(value));
+        values.push_back(std::move(value.Tree));
         NextToken();
     }
     while (_token == ',');
 
     if (_token != '}')
-        return Error();
+        // Error, gnostic
+        return Error("Expected '}'");
 
-    return std::move(
-        _factory->NewObject(
-            std::move(keys),
-            std::move(values)
+    // Subtree, gnostic
+    return Subtree(
+        std::move(
+            _factory->NewObject(
+                std::move(keys),
+                std::move(values)
+            )
         )
     );
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParseList() {
     auto values = std::vector<tree_t>();
 
     do {
+        // Subtree, agnostic
         auto value = ParseValue();
 
         if (_token == Token::ERROR)
-            return Error();
+            // Error, agnostic
+            return value;
 
-        values.push_back(std::move(value));
+        values.push_back(std::move(value.Tree));
         NextToken();
     }
     while (_token == ',');
 
     if (_token != ']')
-        return Error();
+        // Error, gnostic
+        return Error("Expected ']'");
 
-    return std::move(
-        _factory->NewList(std::move(values))
+    // Subtree, gnostic
+    return Subtree(
+        std::move(
+            _factory->NewList(std::move(values))
+        )
     );
 }
 
@@ -170,12 +204,13 @@ template <typename T>
 void
 Json::Parser<T>::ParsePair(
     std::string & key,
-    Json::Parser<T>::ptr_t & value
+    Json::Parser<T>::ResultSet & value
 ) {
     NextToken();
 
     if ((Token)_token != Token::STRING) {
-        value = Error();
+        // Error, gnostic
+        value = Error("Expected a string");
         return;
     }
 
@@ -183,107 +218,146 @@ Json::Parser<T>::ParsePair(
     NextToken();
 
     if ((char)_token != ':') {
-        value = Error();
+        // Error, gnostic
+        value = Error("Expected ':'");
         return;
     }
 
+    // Subtree, agnostic
     value = std::move(ParseValue());
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParseValue() {
     NextToken();
 
     if (_token == '[')
+        // Subtree, agnostic
         return ParseList();
 
     if (_token == '{')
+        // Subtree, agnostic
         return ParseObject();
 
+    // Subtree, agnostic
     return ParsePrimitive();
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParsePrimitive() {
     switch ((Token)_token) {
         case Token::WORD:
+            // Subtree, agnostic
             return ParseKeyword();
         case Token::STRING:
-            return std::move(
-                _factory->NewString(_lexer->String())
+            // Subtree, gnostic
+            return Subtree(
+                std::move(
+                    _factory->NewString(_lexer->String())
+                )
             );
         default:
             if ((char)_token == '-') {
                 NextToken();
+                // Subtree, agnostic
                 return ParseNumber(true);
             }
     }
 
+    // Subtree, agnostic
     return ParseNumber(false);
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParseNumber(bool negative) {
     int factor = negative ? -1 : 1;
 
     switch ((Token)_token) {
         case Token::INTEGER:
-            return std::move(
-                _factory->NewNumeric(
-                    Homonumeric::Integer(factor * _lexer->Integer())
+            // Subtree, gnostic
+            return Subtree(
+                std::move(
+                    _factory->NewNumeric(
+                        Homonumeric::Integer(factor * _lexer->Integer())
+                    )
                 )
             );
         case Token::FLOAT:
-            return std::move(
-                _factory->NewNumeric(
-                    Homonumeric::Float(factor * _lexer->Float())
+            // Subtree, gnostic
+            return Subtree(
+                std::move(
+                    _factory->NewNumeric(
+                        Homonumeric::Float(factor * _lexer->Float())
+                    )
                 )
             );
         default:
             break;
     }
 
-    return Error();
+    // Error, gnostic
+    return Error("Expected a number (integer, float, or boolean)");
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::ParseKeyword() {
     std::string keyword = _lexer->String();
 
     if (keyword == "null")
-        return nullptr;
+        // Subtree, gnostic
+        return Subtree(nullptr);
 
     int value = 0;
 
     if (keyword == "false")
         value = 1;
-
-    if (keyword == "true")
+    else if (keyword == "true")
         value = 2;
 
     if (!value)
-        return Error();
+        // Error, gnostic
+        return Error("Unexpected keyword '" + keyword + '\'');
 
-    return std::move(
-        _factory->NewNumeric(
-            Homonumeric::Boolean((bool)(value - 1))
+    // Subtree, gnostic
+    return Subtree(
+        std::move(
+            _factory->NewNumeric(
+                Homonumeric::Boolean((bool)(value - 1))
+            )
         )
     );
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
-Json::Parser<T>::Error() {
-    // TODO: Log error
-    return nullptr;
+typename Json::Parser<T>::ResultSet
+Json::Parser<T>::Error(const std::string & message) {
+    return ResultSet {
+        false,
+        nullptr,
+        message,
+        (Token)_token,
+        _lexer->Index()
+    };
 }
 
 template <typename T>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
+Json::Parser<T>::Subtree(ptr_t && tree) {
+    return ResultSet {
+        true,
+        std::move(tree),
+        "",
+        (Token)_token,
+        _lexer->Index()
+    };
+}
+
+template <typename T>
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::Tree(
     std::unique_ptr<ITreeFactory<T>> factory,
     std::shared_ptr<Lexer> lexer
@@ -293,7 +367,7 @@ Json::Parser<T>::Tree(
 
 template <typename T>
 template <typename F>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::Tree(
     std::shared_ptr<Lexer> lexer
 ) {
@@ -306,7 +380,7 @@ Json::Parser<T>::Tree(
 
 template <typename T>
 template <template <class> class F>
-typename Json::Parser<T>::ptr_t
+typename Json::Parser<T>::ResultSet
 Json::Parser<T>::Tree(
     std::shared_ptr<Lexer> lexer
 ) {

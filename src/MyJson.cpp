@@ -111,8 +111,11 @@ Json::GetMutableMachine(std::istream & inputStream) {
     auto lexer = std::make_shared<Lexer>(enumerator);
     auto machine = std::make_shared<Json::Machine>();
     auto visitor = std::make_shared<Json::MyPostorderTreeVisitor>(machine);
-    auto tree = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer);
-    tree->Accept(visitor);
+    auto parse = Json::Parser<Json::Tree<Json::Pointer>>::Tree<Json::MyTreeFactory>(lexer);
+
+    if (parse.Success)
+        parse.Tree->Accept(visitor);
+
     return machine;
 }
 

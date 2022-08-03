@@ -197,20 +197,6 @@ void Tests::Init() {
             }
         },
         {
-            "JsonContextToString_Should_MatchJsonFileContent",
-            [](std::string & actual, std::string & expected) -> bool {
-                bool success = TestJsonParserDemo(
-                    "res/input01.json",
-                    "res/expected011.txt",
-                    actual,
-                    expected,
-                    [](const auto & machine) { return machine.ToString(); }
-                );
-
-                return success;
-            }
-        },
-        {
             "JsonResultSet_Should_MatchStringInNestedObject",
             [](std::string & actual, std::string & expected) -> bool {
                 FileReader inputReader;
@@ -461,6 +447,20 @@ void Tests::Init() {
                     ;
 
                 return !expected.compare(actual);
+            }
+        },
+        {
+            "JsonMachineToString_Should_MatchJsonFileContent",
+            [](std::string & actual, std::string & expected) -> bool {
+                bool success = TestJsonParserDemo(
+                    "res/input01.json",
+                    "res/expected011.txt",
+                    actual,
+                    expected,
+                    [](const auto & machine) { return machine.ToString(); }
+                );
+
+                return success;
             }
         },
         {

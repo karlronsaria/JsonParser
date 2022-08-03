@@ -105,8 +105,8 @@ void Tests::Run(std::ostream & out) {
         }
         else {
             out << test.name << ":\n❌ Failure\n";
-            out << "\n  Actual   : " << actual;
-            out << "\n  Expected : " << expected << '\n';
+            out << "\n  Actual   : [" << actual << "]";
+            out << "\n  Expected : [" << expected << "]\n";
         }
     }
 }
@@ -319,7 +319,8 @@ bool Tests::TestJsonParserDemo002(
     const std::string & testFilePath,
     const std::string & expectedFilePath,
     std::string & actual,
-    std::string & expected
+    std::string & expected,
+    std::string (*forMachine)(const Json::Machine &)
 ) {
     FileReader inputReader;
 
@@ -331,8 +332,6 @@ bool Tests::TestJsonParserDemo002(
         expected = "Input file opened successfully";
         return false;
     }
-
-    auto machine = Json::GetMachine(inputReader.Stream());
 
     std::stringstream actualStream;
     std::ifstream expectedStream;
@@ -356,8 +355,19 @@ bool Tests::TestJsonParserDemo002(
         return false;
     }
 
-    actualStream
-        << machine->ToString();
+    auto result = Json::RunMyParser(inputReader.Stream());
+
+    if (result.Success) {
+        actualStream
+            << forMachine(*result.Machine)
+            ;
+    }
+    else {
+        actualStream
+            << result.Message
+            << '\n'
+            ;
+    }
 
     return 0 > GetNextDifferentLine(
         expectedReader.Stream(),

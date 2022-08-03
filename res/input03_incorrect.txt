@@ -1,0 +1,15 @@
+{
+    "link": {
+        "url": "https://json.org/example.html",
+        "retrieved": "2022_06_19"
+    },
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry" "SGML"
+            }
+        }
+    }
+}

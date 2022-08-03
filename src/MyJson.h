@@ -8,8 +8,25 @@
 #include "../lib/JsonTree.h"
 #include "../lib/JsonMachine.h"
 #include "../lib/JsonBuilder.h"
+#include <iomanip>
 
 namespace Json {
+    class MyLexer: public Lexer {
+        private:
+            std::vector<int>
+            _codes;
+
+            std::vector<std::string>
+            _tokens;
+        public:
+            MyLexer(std::shared_ptr<IEnumerator> &&);
+            virtual ~MyLexer() override = default;
+            virtual int NextToken() override;
+
+            const std::vector<int> & Codes() const;
+            const std::vector<std::string> & Tokens() const;
+    };
+
     class MyTreeFactory: public ITreeFactory<Tree<Pointer>> {
         public:
             virtual ~MyTreeFactory() = default;
@@ -47,6 +64,30 @@ namespace Json {
 
     std::shared_ptr<Machine>
     GetMutableMachine(std::istream & inputStream);
+
+    void
+    ParserMessageToStream(
+        std::ostream & outStream,
+        const MyLexer & lexer,
+        const std::string & message
+    );
+
+    std::string
+    ParserMessageToString(
+        const MyLexer & lexer,
+        const std::string & message
+    );
+
+    struct MyResultSet {
+        bool Success;
+        std::shared_ptr<Machine> Machine;
+        std::string Message;
+    };
+
+    MyResultSet
+    RunMyParser(
+        std::istream & inputStream
+    );
 };
 
 #endif

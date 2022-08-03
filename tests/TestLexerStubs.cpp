@@ -203,7 +203,8 @@ void Tests::Init() {
                     "res/input01.json",
                     "res/expected011.txt",
                     actual,
-                    expected
+                    expected,
+                    [](const auto & machine) { return machine.ToString(); }
                 );
 
                 return success;
@@ -460,6 +461,42 @@ void Tests::Init() {
                     ;
 
                 return !expected.compare(actual);
+            }
+        },
+        {
+            "JsonParserErrorMessage_Should_IdentifyMisplacedPunctuation",
+            [](std::string & actual, std::string & expected) -> bool {
+                bool success = TestJsonParserDemo002(
+                    "res/input03_incorrect.txt",
+                    "res/expected030.txt",
+                    actual,
+                    expected,
+                    [](const auto & machine) {
+                        return machine
+                            .GetResultSet()
+                            .ToString();
+                    }
+                );
+
+                return success;
+            }
+        },
+        {
+            "JsonParserErrorMessage_Should_IdentifyPrematureEof",
+            [](std::string & actual, std::string & expected) -> bool {
+                bool success = TestJsonParserDemo002(
+                    "res/input04_incorrect.txt",
+                    "res/expected040.txt",
+                    actual,
+                    expected,
+                    [](const auto & machine) {
+                        return machine
+                            .GetResultSet()
+                            .ToString();
+                    }
+                );
+
+                return success;
             }
         /*
         // TODO quarantine

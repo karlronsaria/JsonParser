@@ -5,7 +5,6 @@
 #include "Homonumeric.h"
 #include "Lexer.h"
 #include <vector>
-#include <type_traits>
 
 // **note: sfinae
 //   link: https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error#:~:text=Substitution%20failure%20is%20not%20an%20error%20(SFINAE)%20refers%20to%20a,to%20describe%20related%20programming%20techniques.
@@ -40,8 +39,21 @@ namespace Json {
 
     class Parsing {
         public:
-            static int Escape(Lexer &);
-            static int NextToken(Lexer &);
+            static int Escape(::Lexer &);
+            static int NextToken(::Lexer &);
+    };
+
+    class Lexer {
+        private:
+            ::Lexer _lexer;
+        public:
+            Lexer(std::shared_ptr<IEnumerator> &&);
+            virtual ~Lexer() = default;
+            virtual int NextToken();
+            virtual const std::string & String() const;
+            virtual int Integer() const;
+            virtual float Float() const;
+            virtual int Index() const;
     };
 
     template <typename Tree_Type>
@@ -57,8 +69,6 @@ namespace Json {
                 bool Success;
                 ptr_t Tree;
                 std::string Message;
-                Token Token;
-                int Index;
             };
         private:
             std::unique_ptr<ITreeFactory<Tree_Type>>
@@ -67,9 +77,9 @@ namespace Json {
             std::shared_ptr<Lexer>
             _lexer;
 
-            int _token;
+            int
+            _token;
         protected:
-            int NextToken();
             ResultSet ParseObject();
             ResultSet ParseList();
             void ParsePair(std::string &, ResultSet &);
@@ -77,14 +87,23 @@ namespace Json {
             ResultSet ParsePrimitive();
             ResultSet ParseNumber(bool);
             ResultSet ParseKeyword();
+            int NextToken();
             ResultSet Error(const std::string &);
             ResultSet Subtree(ptr_t &&);
         public:
+            virtual ~Parser() = default;
+
             Parser(
                 std::unique_ptr<ITreeFactory<Tree_Type>> factory,
                 std::shared_ptr<Lexer> lexer
             ):  _factory(std::move(factory)),
                 _lexer(lexer),
+                _token(0) {}
+
+            Parser(
+                std::unique_ptr<ITreeFactory<Tree_Type>> factory
+            ):  _factory(std::move(factory)),
+                _lexer(std::make_shared<Lexer>()),
                 _token(0) {}
 
             ResultSet GetTree();
@@ -111,7 +130,7 @@ namespace Json {
 template <typename T>
 int
 Json::Parser<T>::NextToken() {
-    return _token = Json::Parsing::NextToken(*_lexer);
+    return _token = _lexer->NextToken();
 }
 
 template <typename T>
@@ -338,9 +357,7 @@ Json::Parser<T>::Error(const std::string & message) {
     return ResultSet {
         false,
         nullptr,
-        message,
-        (Token)_token,
-        _lexer->Index()
+        message
     };
 }
 
@@ -350,9 +367,7 @@ Json::Parser<T>::Subtree(ptr_t && tree) {
     return ResultSet {
         true,
         std::move(tree),
-        "",
-        (Token)_token,
-        _lexer->Index()
+        ""
     };
 }
 

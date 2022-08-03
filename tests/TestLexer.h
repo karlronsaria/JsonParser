@@ -64,7 +64,8 @@ class Tests {
             const std::string & testFilePath,
             const std::string & expectedFilePath,
             std::string & actual,
-            std::string & expected
+            std::string & expected,
+            std::string (*forMachine)(const Json::Machine &)
         );
 };
 

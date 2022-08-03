@@ -30,6 +30,7 @@ class Lexer {
     protected:
         std::shared_ptr<IEnumerator> Enumerator();
     public:
+        virtual ~Lexer() = default;
         Lexer(std::shared_ptr<IEnumerator> &&);
 
         bool NextChar();

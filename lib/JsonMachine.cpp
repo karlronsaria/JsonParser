@@ -1,7 +1,7 @@
 #include "JsonMachine.h"
 
 std::string
-Json::ToString(const Json::Type & typeCode) {
+Json::ToString(Json::Type typeCode) {
     switch (typeCode) {
         case Json::Type::STRING:
             return "String";

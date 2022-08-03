@@ -6,7 +6,6 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
-#include <type_traits>
 
 // **note: sfinae
 //   link: https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error#:~:text=Substitution%20failure%20is%20not%20an%20error%20(SFINAE)%20refers%20to%20a,to%20describe%20related%20programming%20techniques.
@@ -23,9 +22,11 @@ namespace Json {
         NIL
     };
 
-    std::string ToString(const Type &);
+    std::string
+    ToString(Type);
 
-    typedef int key_t;
+    typedef int
+    key_t;
 
     struct Pointer {
         Type type = Type::NIL;
@@ -46,15 +47,18 @@ namespace Json {
         public:
             virtual ~ObjectDefinition() = default;
 
-            size_t size() const {
+            size_t
+            size() const {
                 return _map.size();
             }
 
-            bool hasKey(const T & key) const {
+            bool
+            hasKey(const T & key) const {
                 return _map.find(key) != _map.end();
             }
 
-            bool add(const T & key, Pointer value) {
+            bool
+            add(const T & key, Pointer value) {
                 if (hasKey(key))
                     return false;
 
@@ -63,22 +67,26 @@ namespace Json {
                 return true;
             }
 
-            Pointer at(const T & key) const {
+            Pointer
+            at(const T & key) const {
                 if (hasKey(key))
                     return _map.at(key);
 
                 return Pointer();
             }
 
-            Pointer operator[](const T & key) const {
+            Pointer
+            operator[](const T & key) const {
                 return at(key);
             }
 
-            Pointer & operator[](const T & key) {
+            Pointer &
+            operator[](const T & key) {
                 return _map[key];
             }
 
-            const std::vector<std::string> & keys() const {
+            const std::vector<std::string> &
+            keys() const {
                 return _keys;
             }
     };
@@ -103,7 +111,9 @@ namespace Json {
                     Pointer
                     _pointer;
 
-                    std::string RecurseToString(Pointer) const;
+                    std::string
+                    RecurseToString(Pointer) const;
+
                     ResultSet(Machine_Pointer_Type, const Pointer &);
                 public:
                     ResultSet();
@@ -147,7 +157,8 @@ namespace Json {
             std::vector<object_t>
             _objects;
 
-            key_t _start;
+            key_t
+            _start;
         public:
             virtual ~Machine() = default;
             Machine();
@@ -175,7 +186,8 @@ namespace Json {
             const float & Float(key_t) const;
             bool Boolean(key_t) const;
 
-            std::string ToString() const;
+            std::string
+            ToString() const;
 
             const ResultSet<const Machine *>
             GetResultSet() const;

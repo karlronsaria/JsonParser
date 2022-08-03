@@ -1,6 +1,6 @@
 #include "JsonParser.h"
 
-int Json::Parsing::Escape(Lexer & lexer) {
+int Json::Parsing::Escape(::Lexer & lexer) {
     if (!lexer.NextChar())
         return Token::ERROR;
 
@@ -28,7 +28,7 @@ int Json::Parsing::Escape(Lexer & lexer) {
     }
 }
 
-int Json::Parsing::NextToken(Lexer & lexer) {
+int Json::Parsing::NextToken(::Lexer & lexer) {
     if (!lexer.IgnoreWhiteSpace())
         return Token::END;
 
@@ -53,4 +53,33 @@ int Json::Parsing::NextToken(Lexer & lexer) {
     int temp = (int)currentChar;
     lexer.NextChar();
     return temp;
+}
+
+Json::Lexer::Lexer(
+    std::shared_ptr<IEnumerator> && stream
+):  _lexer(std::move(stream)) {}
+
+int
+Json::Lexer::NextToken() {
+    return Json::Parsing::NextToken(_lexer);
+}
+
+const std::string &
+Json::Lexer::String() const {
+    return _lexer.String();
+}
+
+int
+Json::Lexer::Integer() const {
+    return _lexer.Integer();
+}
+
+float
+Json::Lexer::Float() const {
+    return _lexer.Float();
+}
+
+int
+Json::Lexer::Index() const {
+    return _lexer.Index();
 }

@@ -111,7 +111,7 @@ void Tests::Run(std::ostream & out) {
     }
 }
 
-bool Tests::TestLexerDemo002(
+bool Tests::TestLexerDemo(
     const std::string & testString,
     const std::vector<std::string> & expectedTokens,
     std::string & actual,
@@ -185,84 +185,6 @@ bool Tests::TestLexerDemo002(
     return !expected.compare(actual);
 }
 
-/*
-bool Tests::TestJsonParserDemo001(
-    const std::string & testFilePath,
-    const std::string & expectedFilePath,
-    std::string & actual,
-    std::string & expected
-) {
-    std::ifstream inputStream;
-
-    std::string testFile
-        = Tests::WorkingDirectory
-            + std::string("/")
-            + testFilePath;
-
-    inputStream.open(testFile.c_str());
-
-    FileReader inputReader;
-    if (!FileReader::New(testFile, inputReader)) {
-        std::ostringstream oss;
-
-        oss << "Could not open file at "
-            << testFile
-            << '\n';
-
-        actual = oss.str();
-        expected = "";
-        return false;
-    }
-
-    std::stringstream actualStream;
-
-    auto enumerator = std::make_shared<StreamEnumerator>(inputReader.Stream());
-    auto lexer = std::make_shared<Lexer>(enumerator);
-    auto visitor = std::make_shared<Json::MyTreeVisitor>(actualStream);
-    auto tree = Json::Parser::Tree(lexer.get());
-    tree->Accept(visitor.get());
-
-    inputStream.close();
-
-    std::ifstream expectedStream;
-
-    std::string expectedFile
-        = Tests::WorkingDirectory
-            + std::string("/")
-            + expectedFilePath;
-
-    FileReader expectedReader;
-    if (!FileReader::New(expectedFile, expectedReader)) {
-        std::ostringstream oss;
-
-        oss << "Could not open file at "
-            << expectedFile
-            << '\n';
-
-        actual = oss.str();
-        expected = "";
-        return false;
-    }
-
-    if (GetNextDifferentLine(
-        expectedReader.Stream(),
-        actualStream,
-        expected,
-        actual) < 0
-    ) {
-        return false;
-    }
-
-    expected = ToString(Json::MyTreeVisitor::STARTING_LEVEL);
-    actual = ToString(visitor->Level());
-
-    if (expected.compare(actual))
-        return false;
-
-    return true;
-}
-*/
-
 bool Tests::TestLexer(
     const std::string & testString,
     const std::vector<std::string> & expectedTokens,
@@ -315,7 +237,7 @@ bool Tests::StartFileReader(
     return true;
 }
 
-bool Tests::TestJsonParserDemo002(
+bool Tests::TestJsonParserDemo(
     const std::string & testFilePath,
     const std::string & expectedFilePath,
     std::string & actual,
@@ -374,5 +296,25 @@ bool Tests::TestJsonParserDemo002(
         actualStream,
         expected,
         actual
+    );
+}
+
+bool Tests::TestJsonParserDemo(
+    const std::string & testFilePath,
+    const std::string & expectedFilePath,
+    std::string & actual,
+    std::string & expected
+) {
+    return TestJsonParserDemo(
+        testFilePath,
+        expectedFilePath,
+        actual,
+        expected,
+        [](const Json::Machine & machine) {
+            return machine
+                .GetResultSet()
+                .ToString()
+                ;
+        }
     );
 }

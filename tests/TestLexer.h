@@ -44,28 +44,26 @@ class Tests {
             FileReader & inputReader
         );
 
-        static bool TestLexerDemo002(
+        static bool TestLexerDemo(
             const std::string & testString,
             const std::vector<std::string> & expectedTokens,
             std::string & actual,
             std::string & expected
         );
 
-        /*
-        static bool TestJsonParserDemo001(
-            const std::string & testFilePath,
-            const std::string & expectedFilePath,
-            std::string & actual,
-            std::string & expected
-        );
-        */
-
-        static bool TestJsonParserDemo002(
+        static bool TestJsonParserDemo(
             const std::string & testFilePath,
             const std::string & expectedFilePath,
             std::string & actual,
             std::string & expected,
             std::string (*forMachine)(const Json::Machine &)
+        );
+
+        static bool TestJsonParserDemo(
+            const std::string & testFilePath,
+            const std::string & expectedFilePath,
+            std::string & actual,
+            std::string & expected
         );
 };
 

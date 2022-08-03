@@ -188,7 +188,7 @@ void Tests::Init() {
                     "Punctuation: [;]"
                 };
 
-                return TestLexerDemo002(
+                return TestLexerDemo(
                     testString,
                     std::move(expectedTokens),
                     actual,
@@ -199,7 +199,7 @@ void Tests::Init() {
         {
             "JsonContextToString_Should_MatchJsonFileContent",
             [](std::string & actual, std::string & expected) -> bool {
-                bool success = TestJsonParserDemo002(
+                bool success = TestJsonParserDemo(
                     "res/input01.json",
                     "res/expected011.txt",
                     actual,
@@ -466,16 +466,11 @@ void Tests::Init() {
         {
             "JsonParserErrorMessage_Should_IdentifyMisplacedPunctuation",
             [](std::string & actual, std::string & expected) -> bool {
-                bool success = TestJsonParserDemo002(
+                bool success = TestJsonParserDemo(
                     "res/input03_incorrect.txt",
                     "res/expected030.txt",
                     actual,
-                    expected,
-                    [](const auto & machine) {
-                        return machine
-                            .GetResultSet()
-                            .ToString();
-                    }
+                    expected
                 );
 
                 return success;
@@ -484,34 +479,15 @@ void Tests::Init() {
         {
             "JsonParserErrorMessage_Should_IdentifyPrematureEof",
             [](std::string & actual, std::string & expected) -> bool {
-                bool success = TestJsonParserDemo002(
+                bool success = TestJsonParserDemo(
                     "res/input04_incorrect.txt",
                     "res/expected040.txt",
                     actual,
-                    expected,
-                    [](const auto & machine) {
-                        return machine
-                            .GetResultSet()
-                            .ToString();
-                    }
+                    expected
                 );
 
                 return success;
             }
-        /*
-        // TODO quarantine
-        },
-        {
-            "JsonParser_Should_IdentifyHierarchyInJsonString",
-            [](std::string & actual, std::string & expected) -> bool {
-                return TestJsonParserDemo001(
-                    "res/input01.json",
-                    "res/expected010.txt",
-                    actual,
-                    expected
-                );
-            }
-        */
         }
     };
 }

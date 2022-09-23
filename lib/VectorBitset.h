@@ -6,7 +6,9 @@
 #include <string>
 #include <vector>
 
-template <size_t Bitset_Size = sizeof(int *) * CHAR_BIT>
+const size_t DEFAULT_BITSET_SIZE = sizeof(int *) * CHAR_BIT;
+
+template <size_t Bitset_Size = DEFAULT_BITSET_SIZE>
 class vector_bitset {
     private:
         std::vector<std::bitset<Bitset_Size>>
@@ -15,7 +17,8 @@ class vector_bitset {
         size_t
         _size;
 
-        static std::bitset<Bitset_Size> &
+        static
+        std::bitset<Bitset_Size> &
         push_back_bit(
             std::bitset<Bitset_Size> & bits,
             size_t size,
@@ -32,6 +35,7 @@ class vector_bitset {
         vector_bitset & set(size_t pos, bool value = true);
         bool operator[](size_t pos) const;
         std::string to_string() const;
+        void raise_size(size_t n, bool value = false);
 };
 
 template <size_t S>
@@ -104,6 +108,13 @@ vector_bitset<S>::to_string() const {
             ? '1' : '0';
 
     return temp;
+}
+
+template <size_t S>
+void
+vector_bitset<S>::raise_size(size_t n, bool value) {
+    while (size() < n)
+        push_back(value);
 }
 
 #endif

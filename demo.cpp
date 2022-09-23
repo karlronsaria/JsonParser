@@ -1,4 +1,4 @@
-#include "tests/TestLexer.h"
+#include "test/TestLexer.h"
 
 #define RUN_TESTS
 
